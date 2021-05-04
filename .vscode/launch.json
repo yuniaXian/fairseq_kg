@@ -1,0 +1,25 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "data-bin/iwslt14.tokenized.de-en", 
+                "--arch", "tutorial_simple_lstm",
+                "--encoder-dropout", "0.2",
+                "--decoder-dropout", "0.2",
+                "--lr", "0.005",
+                "--lr-shrink", "0.5",
+                "--max-tokens", "12000", 
+                "--optimizer", "adam"
+            ]
+        }
+    ]
+}
