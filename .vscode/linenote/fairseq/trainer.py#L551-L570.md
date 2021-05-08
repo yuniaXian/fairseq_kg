@@ -1,0 +1,1 @@
+batch_iterator = self.task.get_batch_iterator(...)
