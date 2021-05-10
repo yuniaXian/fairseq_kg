@@ -11,6 +11,7 @@ def get_whole_word_mask(args, dictionary):
     bpe = encoders.build_bpe(args)
     if bpe is not None:
 
+
         def is_beginning_of_word(i):
             if i < dictionary.nspecial:
                 # special elements are always considered beginnings

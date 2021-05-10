@@ -1,0 +1,33 @@
+--encoder-normalize-before --decoder-normalize-before \
+--arch mbart_large --task translation_from_pretrained_bart \
+--criterion label_smoothed_cross_entropy --label-smoothing 0.2  \
+--dataset-impl mmap --optimizer adam --adam-eps 1e-06 --adam-betas (0.9, 0.98) \
+--lr-scheduler polynomial_decay --lr 3e-05 --stop-min-lr -1 \
+--warmup-updates 2500 --max-update 40000 --total-num-update 40000 \
+--dropout 0.3 --attention-dropout 0.1 \
+--weight-decay 0.0 --max-tokens 1024 --update-freq 2 --save-interval 1 \
+--save-interval-updates 8000 --keep-interval-updates 10 --no-epoch-checkpoints \
+--seed 222 --log-format simple --log-interval 2 \
+--reset-optimizer --reset-meters --reset-dataloader --reset-lr-scheduler \
+--save-dir checkpoint/denoising_webnlg \
+--langs $langs --layernorm-embedding  --ddp-backend no_c10d \
+--restore-file $PRETRAIN
+--multilang-sampling-alpha 1.0 \
+--add-lang-token False
+--langs "en_XX"
+--no-whole-word-mask-langs False
+--tokens-per-sample 512
+--sample-break-mode False
+--mask 0.0
+--mask-random 0.4
+--insert 0.0
+--permute 0.0
+--rotate 0.5
+--poisson-lambda 3.0
+--permute-sentences 0.0
+--mask-length "word"
+--replace-length -1
+--max-source-position 1024
+--max-target-positions 1024
+--shorten-method "none"
+#--shorten-data-split-list

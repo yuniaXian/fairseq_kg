@@ -117,6 +117,12 @@ def main(cfg: FairseqConfig) -> None:
     for valid_sub_split in cfg.dataset.valid_subset.split(","):
         task.load_dataset(valid_sub_split, combine=False, epoch=1)
 
+    #from Kg2text.data_utils.debug import experiment
+    for idx, sample in enumerate(task.datasets["eval.input"]):
+        print("Done")
+
+
+
     # (optionally) Configure quantization
     if cfg.common.quantization_config_path is not None:
         quantizer = quantization_utils.Quantizer(

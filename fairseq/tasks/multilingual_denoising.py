@@ -110,7 +110,7 @@ class MultilingualDenoisingTask(DenoisingTask):
         split_path = os.path.join(data_path, split)
 
         if self.langs is None:
-            languages = sorted(
+            languages = sorted( # get all the dirs folders under data_path
                 [
                     name
                     for name in os.listdir(data_path)
@@ -120,7 +120,7 @@ class MultilingualDenoisingTask(DenoisingTask):
         else:
             languages = self.langs.split(",")
             for name in languages:
-                p = os.path.join(data_path, name)
+                p = os.path.join(data_path, name) # for example 'Kg2text/data-bin/webnlg/sentencepiece_bped_data/en_XX'
                 assert os.path.exists(p), "data not found: {}".format(p)
 
         logger.info("Training on {0} languages: {1}".format(len(languages), languages))
@@ -134,7 +134,7 @@ class MultilingualDenoisingTask(DenoisingTask):
         for language in languages:
             split_path = os.path.join(data_path, language, split)
 
-            dataset = data_utils.load_indexed_dataset(
+            dataset = data_utils.load_indexed_dataset( # if impl is raw, it will add eos, so remove eos of bped dataset
                 split_path,
                 self.source_dictionary,
                 self.args.dataset_impl,
@@ -146,7 +146,7 @@ class MultilingualDenoisingTask(DenoisingTask):
                 )
 
             end_token = (
-                self.source_dictionary.index("[{}]".format(language))
+                self.source_dictionary.index("[{}]".format(language))  # [en_XX] or </s> added at the end of sentence
                 if self.args.add_lang_token
                 else self.source_dictionary.eos()
             )
@@ -156,9 +156,9 @@ class MultilingualDenoisingTask(DenoisingTask):
                 dataset,
                 dataset.sizes,
                 self.args.tokens_per_sample - 2,  # one less for <s>
-                pad=self.source_dictionary.pad(),
-                eos=end_token,
-                break_mode=self.args.sample_break_mode,
+                pad=self.source_dictionary.pad(), # pad index
+                eos=end_token, # eos index
+                break_mode=self.args.sample_break_mode, #?? TODO: check
             )
             logger.info("loaded {} blocks from: {}".format(len(dataset), split_path))
 

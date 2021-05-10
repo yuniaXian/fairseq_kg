@@ -560,9 +560,9 @@ class Trainer(object):
             max_tokens=self.cfg.dataset.max_tokens,
             max_sentences=self.cfg.dataset.batch_size,
             max_positions=utils.resolve_max_positions(
-                self.task.max_positions(),
-                self.model.max_positions(),
-                self.cfg.dataset.max_tokens,
+                self.task.max_positions(),# TODO add max_positions() in task
+                self.model.max_positions(), # encoder.max_positions(), decoder.max_positions() # TODO add max_position() in encoder, decoder
+                self.cfg.dataset.max_tokens, # TODO check
             ),
             ignore_invalid_inputs=True,
             required_batch_size_multiple=self.cfg.dataset.required_batch_size_multiple,

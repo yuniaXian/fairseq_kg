@@ -33,6 +33,11 @@ wheels/
 
 # Checkpoints
 checkpoints
+*.pt
+*.gz
+*.tar
+*.tgz
+*.2
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -115,9 +120,11 @@ ENV/
 /fairseq/modules/*_layer/*_backward.cu
 /fairseq/version.py
 
+
 # data
 data-bin/
-
+/fairseq/checkpoint
+/fairseq/data-bin
 # reranking
 /examples/reranking/rerank_data
 

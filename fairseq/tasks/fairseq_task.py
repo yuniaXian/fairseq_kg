@@ -269,7 +269,7 @@ class FairseqTask(object):
         assert isinstance(dataset, FairseqDataset)
 
         # initialize the dataset with the correct starting epoch
-        dataset.set_epoch(epoch)
+        dataset.set_epoch(epoch) # TODO add set_epoch()
 
         # get indices ordered by example size
         with data_utils.numpy_seed(seed):

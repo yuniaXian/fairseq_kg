@@ -1,1 +1,0 @@
-put data, models, etc onto device or determine if use distributed parallel training

@@ -1,24 +1,75 @@
-{
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
+{   "version": "0.2.0",
     "configurations": [
         {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
             "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: fairseq_train_simple_lstm",
+            "type": "python",
+            "request": "launch",
+            "program": "/home/xianjiay/efs-storage/fairseq/fairseq_cli/train.py",
             "console": "integratedTerminal",
             "args": [
-                "data-bin/iwslt14.tokenized.de-en", 
-                "--arch", "tutorial_simple_lstm",
-                "--encoder-dropout", "0.2",
-                "--decoder-dropout", "0.2",
-                "--lr", "0.005",
-                "--lr-shrink", "0.5",
-                "--max-tokens", "12000", 
-                "--optimizer", "adam"
+                "data-bin/iwslt14.tokenized.de-en",
+                "--arch",
+                "tutorial_simple_lstm",
+                "--encoder-dropout",
+                "0.2",
+                "--decoder-dropout",
+                "0.2",
+                "--lr",
+                "0.005",
+                "--lr-shrink",
+                "0.5",
+                "--max-tokens",
+                "12000",
+                "--optimizer",
+                "adam"
+            ]
+        },
+        {
+            "name": "Python: denoising_task",
+            "type": "python",
+            "request": "launch",
+            "program": "/home/xianjiay/efs-storage/fairseq/fairseq_cli/train.py",
+            "console": "integratedTerminal",
+            "args": [
+                "Kg2text/data-bin/webnlg/sentencepiece_bped_data",
+                "--encoder-normalize-before", "--decoder-normalize-before",
+                "--arch", "mbart_large", "--task", "multilingual_denoising",
+                "--criterion", "label_smoothed_cross_entropy", "--label-smoothing", "0.2",
+                "--dataset-impl", "raw", "--optimizer", "adam", "--adam-eps", "1e-06", "--adam-betas", "(0.9, 0.98)",
+                "--lr-scheduler", "polynomial_decay", "--lr", "3e-05", "--stop-min-lr", "-1",
+                "--warmup-updates", "2500", "--max-update", "40000", "--total-num-update", "40000",
+                "--dropout", "0.3", "--attention-dropout", "0.1",
+                "--weight-decay", "0.0", "--max-tokens", "1024", "--update-freq", "2", "--save-interval", "1",
+                "--save-interval-updates", "8000", "--keep-interval-updates", "10", "--no-epoch-checkpoints",
+                "--seed", "222", "--log-format", "simple", "--log-interval", "2",
+                "--reset-optimizer", "--reset-meters", "--reset-dataloader", "--reset-lr-scheduler",
+                "--save-dir", "Kg2text/checkpoint/denoising_webnlg",
+                "--layernorm-embedding", "--ddp-backend", "no_c10d",
+                "--langs", "en_XX",
+                "--no-whole-word-mask-langs", "False",
+                "--tokens-per-sample", "512",
+                "--sample-break-mode", "eos",
+                "--mask", "0.5",
+                "--mask-random", "0.0",
+                "--insert", "0.0",
+                "--permute", "0.0",
+                "--rotate", "0.5",
+                "--poisson-lambda", "3.0",
+                "--permute-sentences", "0.0",
+                "--mask-length", "word",
+                "--replace-length", "-1",
+                "--shorten-method", "none",
+                "--bpe", "sentencepiece",
+                "--sentencepiece-model", "Kg2text/checkpoint/mbart50.ft.nn/sentence.bpe.model",
+                "--train-subset", "train.input",
+                "--valid-subset", "eval.input"
             ]
         }
     ]

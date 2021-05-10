@@ -337,10 +337,10 @@ def batch_by_size(
         num_tokens_vec = np.fromiter(num_tokens_vec, dtype=np.int64, count=-1)
 
     if fixed_shapes is None:
-        if num_tokens_vec is None:
+        if num_tokens_vec is None: # TODO difference?
             return batch_by_size_fn(
                 indices,
-                num_tokens_fn,
+                num_tokens_fn, # 
                 max_tokens,
                 max_sentences,
                 bsz_mult,
