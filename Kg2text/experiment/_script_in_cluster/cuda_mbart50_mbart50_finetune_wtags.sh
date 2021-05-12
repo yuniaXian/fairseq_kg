@@ -25,7 +25,7 @@ CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --save-interval-updates 8000 --keep-interval-updates 10 --no-epoch-checkpoints \
     --seed 222 --log-format simple --log-interval 2 \
     --layernorm-embedding  --ddp-backend no_c10d \
-    --batch-size 32 --num-workers 8 \
+    --batch-size 32 --num-workers 8 --required-batch-size-multiple 8 \
 #----restore-file $PRETRAIN \
 # --langs ${langs}
 # if --finetune-from-model, remove the --reset-xxxx

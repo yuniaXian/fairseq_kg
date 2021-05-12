@@ -23,7 +23,7 @@ fairseq-train ${DATADIR} \
     --weight-decay 0.0 --max-tokens 1024 --update-freq 2 --save-interval 1 \
     --save-interval-updates 8000 --keep-interval-updates 10 --no-epoch-checkpoints \
     --seed 222 --log-format simple --log-interval 2 \
-    --layernorm-embedding  --ddp-backend no_c10d 
+    --layernorm-embedding  --ddp-backend no_c10d \
     --batch-size 32 --num-workers 8 \
 #----restore-file $PRETRAIN \
 # --langs ${langs}
