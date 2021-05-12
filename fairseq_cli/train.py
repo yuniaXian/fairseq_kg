@@ -118,8 +118,8 @@ def main(cfg: FairseqConfig) -> None:
         task.load_dataset(valid_sub_split, combine=False, epoch=1)
 
     #from Kg2text.data_utils.debug import experiment
-    for idx, sample in enumerate(task.datasets["eval.input"]):
-        print("Done")
+    #for idx, sample in enumerate(task.datasets["eval.input"]):
+    #    print("Done")
 
 
 

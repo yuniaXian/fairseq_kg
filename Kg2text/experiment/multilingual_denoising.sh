@@ -1,9 +1,9 @@
-BASEDIR=~/efs-storage/fairseq
+BASEDIR=~/efs-storage/fairseq/Kg2text
 FAIRSEQ=${BASEDIR}/fairseq_cli
 #PRETRAIN=${BASEDIR}/checkpoint/pretrain/mbart50_wotags/model.pt
 #NAME=webnlg/data_mbart50_wotags
 #SAVEDIR=checkpoint/mbart50_mbart50_finetun_webnlg_wotags
-PRETRAIN=${BASEDIR}/checkpoint/pretrain/mbart50_wtags/model.pt
+PRETRAIN=${BASEDIR}/model/pretrain/mbart50_wtags/model.pt
 NAME=denoising
 DATADIR=${BASEDIR}/data-bin/${NAME}
 SAVEDIR=checkpoint/mbart50_mbart50_denoising_webnlg_wtags

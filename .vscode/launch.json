@@ -50,7 +50,7 @@
                 "--save-interval-updates", "8000", "--keep-interval-updates", "10", "--no-epoch-checkpoints",
                 "--seed", "222", "--log-format", "simple", "--log-interval", "2",
                 "--reset-optimizer", "--reset-meters", "--reset-dataloader", "--reset-lr-scheduler",
-                "--save-dir", "Kg2text/checkpoint/denoising_webnlg",
+                "--save-dir", "checkpoint/denoising_webnlg",
                 "--layernorm-embedding", "--ddp-backend", "no_c10d",
                 "--langs", "en_XX",
                 "--no-whole-word-mask-langs", "False",
@@ -67,7 +67,7 @@
                 "--replace-length", "-1",
                 "--shorten-method", "none",
                 "--bpe", "sentencepiece",
-                "--sentencepiece-model", "Kg2text/checkpoint/mbart50.ft.nn/sentence.bpe.model",
+                "--sentencepiece-model", "Kg2text/tokenizer/mbart50/bpe/sentence.bpe.model",
                 "--train-subset", "train.input",
                 "--valid-subset", "eval.input"
             ]
