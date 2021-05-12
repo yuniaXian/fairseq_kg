@@ -122,7 +122,7 @@ ENV/
 
 
 # data
-data-bin/
+#data-bin/
 /fairseq/checkpoint
 /fairseq/data-bin
 # reranking
