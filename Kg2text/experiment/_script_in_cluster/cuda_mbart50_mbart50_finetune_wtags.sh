@@ -1,3 +1,4 @@
+CUDA=$1
 BASEDIR=~/efs-storage/fairseq
 FAIRSEQ=${BASEDIR}/fairseq_cli
 PRETRAIN=${BASEDIR}/Kg2text/model/mbart50.ft.nn/model_wtags/model.pt
@@ -11,7 +12,7 @@ DATADIR=${BASEDIR}/Kg2text/data-bin/${NAME}
 SAVEDIR=checkpoint/mbart50_mbart50_finetun_webnlg_wtags
 #CUDA_VISIBLE_DEVICES=0,1,2,3 python ${FAIRSEQ}/train.py
 #python ${FAIRSEQ}/train.py ${DATADIR} \
-fairseq-train ${DATADIR} \
+CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --encoder-normalize-before --decoder-normalize-before \
     --arch mbart_large --task translation --finetune-from-model ${PRETRAIN} --save-dir ${SAVEDIR} \
     --source-lang ${SRC} --target-lang ${TGT} \
@@ -23,8 +24,8 @@ fairseq-train ${DATADIR} \
     --weight-decay 0.0 --max-tokens 1024 --update-freq 2 --save-interval 1 \
     --save-interval-updates 8000 --keep-interval-updates 10 --no-epoch-checkpoints \
     --seed 222 --log-format simple --log-interval 2 \
-    --layernorm-embedding  --ddp-backend no_c10d
-    --batch-size 32 \
+    --layernorm-embedding  --ddp-backend no_c10d \
+    --batch-size 32 --num-workers\
 #----restore-file $PRETRAIN \
 # --langs ${langs}
 # if --finetune-from-model, remove the --reset-xxxx
