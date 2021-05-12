@@ -55,6 +55,9 @@ class myMbart50Tokenizer:
 
 def get_project_dir(project="Kg2text"):
     path_cwd = os.path.abspath(os.getcwd())
+    lst = path_cwd.split(os.sep)
+    if lst[-1] == "fairseq":
+        path_cwd += os.sep + project
     assert project in path_cwd
     path_cwd_list = path_cwd.split(os.sep)
     idx = path_cwd_list.index(project)
@@ -138,6 +141,9 @@ def get_kg2text_abs_path(label, cfg, path, project="Kg2text", project_path = Non
     # get project_path
     if project_path is None:
         path_cwd = os.path.abspath(os.getcwd())
+        lst = path_cwd.split(os.sep)
+        if lst[-1] == "fairseq":
+            path_cwd += os.sep + project
         assert project in path_cwd
         path_cwd_list = path_cwd.split(os.sep)
         idx = path_cwd_list.index(project)

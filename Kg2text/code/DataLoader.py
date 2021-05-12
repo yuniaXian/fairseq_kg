@@ -324,7 +324,7 @@ class KBDataset(Dataset):
         sent_tokenized = self.tgt_bpe.encode(sent_tagged)
         return sent_tokenized
 
-    def sentence_preprocess_v1(self, sentence, prepend_lang_tag, lower_case=False):
+    def sentence_preprocess_v1(self, sentence, prepend_lang_tag, lower_case=False, add_bos=True, add_eos=False):
         # GPT2Tokenizer: add all tags -> tokenize
         # fairseq_gpt2 / sentencepiece bpe -> add tag -> dictionary encode
         # TODO
@@ -349,16 +349,23 @@ class KBDataset(Dataset):
             sent_format = self.text_format
         sent_tagged = sent_format.format(sent_bped)
         sent_tokenized = self.tgt_dict.encode_line(sent_tagged).tolist()
-        return sent_tokenized
+        
 
-    def sentence_preprocess_bpe(self, sentence, prepend_lang_tag, lower_case=False):
+    def sentence_preprocess_bpe(self, sentence, prepend_lang_tag, add_bos=True, add_eos=False, lower_case=False):
         if lower_case:
             sentence =sentence.lower()
         sent_bped = self.tgt_bpe.encode(sentence)
+        
+
         if self.prepend_tgt_lang_tag:
             sent_format = self.lang_text_format
         else:
             sent_format = self.text_format
+
+        if add_bos == False:
+            sent_format = sent_format.replace(self.tgt_dict.bos_word + " ", "")
+        if add_eos == False:
+            sent_format = sent_format.replace(" "+self.tgt_dict.eos_word, "")
         sent_tagged = sent_format.format(sent_bped)
         #sent_tokenized = self.tgt_bpe.encode(sent_tagged)
         return sent_tagged
@@ -606,9 +613,10 @@ class GPTDataset(KBDataset):
         return inputs, output_ids[:-1], output_ids[1:]
 
 class FairseqTranferDataset(KBDataset):
-    def __init__(self, cfg: Kg2textDataSetConfig, src_dict, tgt_dict):
+    def __init__(self, cfg: Kg2textDataSetConfig, src_dict, tgt_dict, add_bos=True, add_eos=False):
         super(FairseqTranferDataset, self).__init__(cfg, src_dict, tgt_dict)
-
+        self.add_bos = add_bos
+        self.add_eos = add_eos
         print("Total samples = {}".format(len(self.data)))
 
     def get_reference(self, idx, do_lower_case=False):
@@ -638,7 +646,7 @@ class FairseqTranferDataset(KBDataset):
 
             if self.prepend_src_lang_tag:
                 strings = self.lang_tagging(strings[1:])
-            sent_tagged = self.sentence_preprocess_bpe(sentence, self.prepend_tgt_lang_tag)
+            sent_tagged = self.sentence_preprocess_bpe(sentence, self.prepend_tgt_lang_tag, self.add_bos, self.add_eos)
 
             return {"text_bped": strings, "sent_bped": sent_tagged}
 

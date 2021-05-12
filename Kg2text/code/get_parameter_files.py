@@ -31,6 +31,39 @@ def yaml_to_sh(file_name):
                 count = 0
         f.close()
 
+def sh_to_args(sh_file, to_write):
+    args = []
+    f = open(sh_file, "r")
+    lines = f.readlines()
+    f.close()
+    
+    for line in lines:
+        line = line.split()
+        for para in line: # the last symbol is "\\"
+            if para == "\\":
+                continue
+            para.replace("\"", "")
+            para.replace("\'", "")
+            args.append("\""+para+"\"")
+            #args.append(para.replace("\'", "\""))
+    print(args)
+    with open(to_write, "w") as fw:
+        fw.write("args=["+"\n")
+        count = 0
+        for arg in args:
+            fw.write(arg+", ")
+            count += 1
+            if count >=6:
+                fw.write("\n")
+                count = 0
+        fw.write("\n")
+        fw.write("]")
+    fw.close()
+
+
+        
+
+
 def args_to_sh(file_name, args):
     assert isinstance(args, list)
     count = 0
@@ -42,7 +75,13 @@ def args_to_sh(file_name, args):
                 f.write(" \\"+"\n")
                 count = 0
         f.close()
-args=[
+
+
+KG2TEXT = "/home/xianjiay/efs-storage/fairseq/Kg2text"
+EXPERIMENT = "/home/xianjiay/efs-storage/fairseq/Kg2text/experiment"
+if __name__ == '__main__':
+    #yaml_to_sh("./code/data_parameters_from_yaml.sh")
+    args=[
                 "Kg2text/data-bin/webnlg/sentencepiece_bped_data",
                 "--encoder-normalize-before", "--decoder-normalize-before",
                 "--arch", "mbart_large", "--task", "multilingual_denoising",
@@ -78,11 +117,8 @@ args=[
             ]
 
 
-
-
-if __name__ == '__main__':
-    #yaml_to_sh("./code/data_parameters_from_yaml.sh")
-    args_to_sh("./Kg2text/code/denoising_task.sh", args)
+    #args_to_sh("./Kg2text/code/denoising_task.sh", args)
+    sh_to_args(EXPERIMENT + "/translation_task_args_from_sh.sh", EXPERIMENT+"/translation_task_args_from_sh.txt")
     
     
 

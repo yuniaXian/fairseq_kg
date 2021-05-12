@@ -4,13 +4,13 @@ import torch
 from kg2textConfig import Kg2textConfig
 from kg2text_task import Kg2textTask
 
-def build_fairseq_dataset(cfg, split, src_dict, tgt_dict):
+def build_fairseq_dataset(cfg, split, src_dict, tgt_dict, add_bos=True, add_eos=False):
 
     cfg.split = split
     from DataLoader import FairseqTranferDataset
-    data = FairseqTranferDataset(cfg, src_dict, tgt_dict)
+    data = FairseqTranferDataset(cfg, src_dict, tgt_dict, add_bos, add_eos)
     from torch.utils.data import DataLoader
-    dataloader = DataLoader(data)
+    #dataloader = DataLoader(data)
     L = len(data)
     input_file = split + ".input"
     label_file = split + ".label"
@@ -41,4 +41,4 @@ if __name__ == "__main__":
     task = Kg2textTask.setup_task(cfg, args)
 
     for split in ["train", "test", "eval"]:
-        build_fairseq_dataset(data_cfg, split, task.src_dict, task.tgt_dict)
+        build_fairseq_dataset(data_cfg, split, task.src_dict, task.tgt_dict, add_bos=True, add_eos=False)

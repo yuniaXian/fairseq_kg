@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
-DICT=/home/xianjiay/efs-storage/fairseq/data-bin/dict.mbart50.txt
-#DICT=/home/xianjiay/efs-storage/fairseq/data-bin/dict.mbart50_wtags.txt
+# the dest folder should not have any dict.label.txt or dict.input.txt
+#DICT=/home/xianjiay/efs-storage/fairseq/Kg2text/data-bin/dict.mbart50.txt
+DICT=/home/xianjiay/efs-storage/fairseq/Kg2text/data-bin/dict.mbart50_wtags.txt
 SRC=input
 TGT=label
-DATA=/home/xianjiay/efs-storage/fairseq/data-bin/webnlg
+DATA=/home/xianjiay/efs-storage/fairseq/Kg2text/data-bin/webnlg/sentencepiece_bped_data
 TRAIN=train
 VALID=eval
 TEST=test
-DEST=/home/xianjiay/efs-storage/fairseq/data-bin/webnlg
-NAME=wotags
+DEST=/home/xianjiay/efs-storage/fairseq/Kg2text/data-bin/webnlg
+NAME=wtags
 fairseq-preprocess \
   --source-lang ${SRC} \
   --target-lang ${TGT} \
