@@ -7,13 +7,13 @@ PRETRAIN=${EFS}/models/mbart50.ft.nn/model.pt
 #langs_25=ar_AR,cs_CZ,de_DE,en_XX,es_XX,et_EE,fi_FI,fr_XX,gu_IN,hi_IN,it_IT,ja_XX,kk_KZ,ko_KR,lt_LT,lv_LV,my_MM,ne_NP,nl_XX,ro_RO,ru_RU,si_LK,tr_TR,vi_VN,zh_CN
 SRC=input
 TGT=label
-NAME=webnlg/wotags
+NAME=webnlg/wtags
 # NAME=webnlg/data_mbart50_wtags
 DATADIR=${EFS}/data-bin/${NAME}
-SAVEDIR=${EFS}/checkpoint/mbart50_mbart50_finetun_webnlg_wotags
+SAVEDIR=${EFS}/checkpoints/mbart50_mbart50_finetune_webnlg_wtags
 #CUDA_VISIBLE_DEVICES=0,1,2,3 python ${FAIRSEQ}/train.py
-#fairseq-train ${DATADIR} \
-python ${FAIRSEQ}/train.py ${DATADIR} \
+#python ${FAIRSEQ}/train.py ${DATADIR} \
+CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --encoder-normalize-before --decoder-normalize-before \
     --arch mbart_large --task translation --finetune-from-model ${PRETRAIN} --save-dir ${SAVEDIR} \
     --source-lang ${SRC} --target-lang ${TGT} \
@@ -26,7 +26,11 @@ python ${FAIRSEQ}/train.py ${DATADIR} \
     --save-interval-updates 8000 --keep-interval-updates 10 --no-epoch-checkpoints \
     --seed 222 --log-format simple --log-interval 2 \
     --layernorm-embedding  --ddp-backend no_c10d \
-    --batch-size 32 --num-workers 8 \
+    --batch-size 32 --num-workers 8 --required-batch-size-multiple 8 \
+    --log-format simple
 #----restore-file $PRETRAIN \
 # --langs ${langs}
+# if --finetune-from-model, remove the --reset-xxxx
 # --reset-optimizer --reset-meters --reset-dataloader --reset-lr-scheduler \
+# if --lr-scheduler inverse_sqrt : no --total-num-update 40000
+# if --lr-scheduler polynomial_decay: set --total-num-update

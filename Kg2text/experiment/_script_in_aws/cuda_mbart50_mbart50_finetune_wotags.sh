@@ -10,10 +10,10 @@ TGT=label
 NAME=webnlg/wotags
 # NAME=webnlg/data_mbart50_wtags
 DATADIR=${EFS}/data-bin/${NAME}
-SAVEDIR=${EFS}/checkpoint/mbart50_mbart50_finetun_webnlg_wotags
+SAVEDIR=${EFS}/checkpoints/mbart50_mbart50_finetune_webnlg_wotags
 #CUDA_VISIBLE_DEVICES=0,1,2,3 python ${FAIRSEQ}/train.py
-#fairseq-train ${DATADIR} \
-python ${FAIRSEQ}/train.py ${DATADIR} \
+#python ${FAIRSEQ}/train.py ${DATADIR} \
+CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --encoder-normalize-before --decoder-normalize-before \
     --arch mbart_large --task translation --finetune-from-model ${PRETRAIN} --save-dir ${SAVEDIR} \
     --source-lang ${SRC} --target-lang ${TGT} \
@@ -26,7 +26,8 @@ python ${FAIRSEQ}/train.py ${DATADIR} \
     --save-interval-updates 8000 --keep-interval-updates 10 --no-epoch-checkpoints \
     --seed 222 --log-format simple --log-interval 2 \
     --layernorm-embedding  --ddp-backend no_c10d \
-    --batch-size 32 --num-workers 8 \
+    --batch-size 32 --num-workers 8 --required-batch-size-multiple 8 \
+    --log-format simple
 #----restore-file $PRETRAIN \
 # --langs ${langs}
 # --reset-optimizer --reset-meters --reset-dataloader --reset-lr-scheduler \
