@@ -10,7 +10,7 @@ TGT=label
 NAME=webnlg/wotags
 # NAME=webnlg/data_mbart50_wtags
 DATADIR=${EFS}/data-bin/${NAME}
-SAVEDIR=${EFS}/checkpoint/mbart50_mbart50_finetun_webnlg_wotags
+SAVEDIR=${BASE}/checkpoint/mbart50_mbart50_finetun_webnlg_wotags
 #CUDA_VISIBLE_DEVICES=0,1,2,3 python ${FAIRSEQ}/train.py
 #fairseq-train ${DATADIR} \
 python ${FAIRSEQ}/train.py ${DATADIR} \

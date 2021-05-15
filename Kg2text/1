@@ -1,0 +1,2 @@
+nohup: ignoring input
+nohup: failed to run command 'experiment/_script_in_aws/cuda_mbart50_mbart50_train_wtags.sh': Permission denied
