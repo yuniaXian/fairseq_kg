@@ -1,15 +1,16 @@
 CUDA=$1
-BASEDIR=/efs-storage/fairseq
-FAIRSEQ=${BASEDIR}/fairseq_cli
-PRETRAIN=${BASEDIR}/Kg2text/model/mbart50.ft.nn/model.pt
+BASE=/efs-storage
+BASEDIR=/efs-storage/workspaces/hoverboard
+FAIRSEQ=${BASEDIR}/fairseq/fairseq_cli
+PRETRAIN=${BASE}/models/mbart50.ft.nn/model.pt
 #langs=af_ZA,ar_AR,az_AZ,bn_IN,cs_CZ,de_DE,en_XX,es_XX,et_EE,fa_IR,fi_FI,fr_XX,gl_ES,gu_IN,he_IL,hi_IN,hr_HR,id_ID,it_IT,iu_CA,ja_JP,ja_XX,ka_GE,kk_KZ,km_KH,ko_KR,lt_LT,lv_LV,mk_MK,ml_IN,mn_MN,mr_IN,my_MM,ne_NP,nl_XX,pl_PL,ps_AF,pt_XX,ro_RO,ru_RU,si_LK,sl_SI,sv_SE,ta_IN,te_IN,th_TH,tr_TR,uk_UA,ur_PK,vi_VN,xh_ZA,zh_CN
 #langs_25=ar_AR,cs_CZ,de_DE,en_XX,es_XX,et_EE,fi_FI,fr_XX,gu_IN,hi_IN,it_IT,ja_XX,kk_KZ,ko_KR,lt_LT,lv_LV,my_MM,ne_NP,nl_XX,ro_RO,ru_RU,si_LK,tr_TR,vi_VN,zh_CN
 SRC=input
 TGT=label
 NAME=webnlg/wotags
 # NAME=webnlg/data_mbart50_wtags
-DATADIR=${BASEDIR}/Kg2text/data-bin/${NAME}
-SAVEDIR=checkpoint/mbart50_mbart50_finetun_webnlg_wotags
+DATADIR=${BASE}/data-bin/${NAME}
+SAVEDIR=${BASE}/checkpoint/mbart50_mbart50_finetun_webnlg_wotags
 #CUDA_VISIBLE_DEVICES=0,1,2,3 python ${FAIRSEQ}/train.py
 #python ${FAIRSEQ}/train.py ${DATADIR} \
 CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
@@ -26,6 +27,7 @@ CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --seed 222 --log-format simple --log-interval 2 \
     --layernorm-embedding  --ddp-backend no_c10d \
     --batch-size 32 --num-workers 8 --required-batch-size-multiple 8 \
+    --log-format simple
 #----restore-file $PRETRAIN \
 # --langs ${langs}
 # --reset-optimizer --reset-meters --reset-dataloader --reset-lr-scheduler \
