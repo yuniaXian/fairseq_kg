@@ -1,9 +1,0 @@
---~/efs-storage/data-bin/webnlg/wotags \
---path ~/efs-storage/models/mbart50.ft.nn/model.pt \
---task translation \
---gen-subset test \
---source-lang input \
---target-lang label \
---sacrebleu --remove-bpe 'sentencepiece'\
---batch-size 32 \
---lang-pairs "$lang_pairs" > input_label.txt
