@@ -7,6 +7,7 @@ from typing import Dict, Optional, Any, List, Tuple, Callable
 
 import numpy as np
 import torch
+from torch._C import DisableTorchFunction, Size
 from fairseq import (
     checkpoint_utils,
     options,
@@ -25,6 +26,136 @@ from fairseq.model_parallel.megatron_trainer import MegatronTrainer
 from fairseq.trainer import Trainer
 from omegaconf import DictConfig, OmegaConf
 
+
+
+class Kg2textEmbedding:
+
+    def __init__(self, dictionary) -> None:
+        """ 
+        ent
+        triple
+        sub
+        prep
+        kg
+        text
+        """
+        
+        self.dict = dictionary
+        self.eos = self.dict.eos()
+        self.bos = self.dict.bos()
+        self.ent = self.dict.index("[ENT]")
+        self.triple = self.dict.index("[TRIPLE]")
+        self.sub = self.dict.index("[SUB]")
+        self.pred = self.dict.index("[PRED]")
+        self.kg = self.dict.index("[KG]")
+        self.lang = self.dict.index("[en_XX]")
+        self.text = self.dict.index("[TEXT]")
+
+
+    def get_intervals(self, tag_s, tag_t, source):
+        # get intervals index of all nearest pair tag_s, tag_t (tokens included)
+        s_inds = (source==tag_s).nonzero(as_tuple=True)[0]
+        t_inds = (source==tag_t).nonzero(as_tuple=True)[0]
+        mask = (t_inds>s_inds.unsqueeze(1))
+        inds_matrix = torch.arange(mask.shape[1], 0, -1)
+        inds_masked = mask*inds_matrix
+        inds = torch.argmax(inds_masked, 1)
+        
+        paired_t_inds = t_inds[inds]
+
+        mask2 = (s_inds<paired_t_inds)
+        intervals = torch.stack([s_inds, paired_t_inds], 1)
+        intervals = intervals[mask2]
+
+        return intervals
+
+
+    def get_one_triple_embedding_kgpt(self, source, embedding):
+        # "[ENT] ▁Romania [TRIPLE] [PRED] ▁description [SUB] ▁Romania [TRIPLE] [PRED] ▁country [SUB] ▁Alba ▁Iulia [TRIPLE]"
+        ent_inds = (source == self.ent).nonzero(as_tuple=True)[0]
+        pred_triple_intervals = self.get_intervals(self.pred, self.triple, source)
+        
+        first_pred_index = pred_triple_intervals[0][0]
+        # fill 1s between [ENT] and [TRIPLE], [TRIPLE] not included
+        embedding[range(ent_inds[0], first_pred_index-1)] = 1
+        embedding[first_pred_index-1] = 2
+
+        i = 0
+        for s, t in pred_triple_intervals:
+            embedding[range(s,t+1)] = i+2
+            i += 1
+        return embedding
+
+
+    def get_triples_embedding_kgpt(self, source):
+        
+        ent_inds = (source == self.ent).nonzero(as_tuple=True)[0]
+
+        embedding = torch.zeros(source.shape)
+        if ent_inds.size(0) == 1:
+            s, t = ent_inds[0], embedding.size(0)
+        
+        elif ent_inds.size(0) > 1:
+            for i in range(ent_inds.size(0)):
+                s, t = int(ent_inds[i]), ent_inds[i+1] if i+1<ent_inds.size(0) else source.size(0)-1
+                self.get_one_triple_embedding_kgpt(source[s : t], embedding[s : t])
+        else:
+            return torch.tensor([], dtype=source.dtype)
+
+        return embedding
+
+    def get_entity_embedding_kgpt(self, source):
+        # TODO only with one ent_inds
+        ent_inds = (source == self.ent).nonzero(as_tuple=True)[0]
+        embedding = torch.zeros(source.shape)
+
+        if ent_inds.size(0) == 1:
+            embedding[ent_inds[0]:] = 1
+        elif ent_inds.size(0) > 1:
+            for i in range(ent_inds.size(0)):
+                s, t = ent_inds[i], ent_inds[i+1] if i+1<ent_inds.size(0) else source.size(0)-1
+                embedding[s : t] = i + 1
+        else:
+            return torch.tensor([], dtype=source.dtype)
+
+        return embedding
+
+    def get_position_embedding(self, s, t, source):
+       
+        embedding = torch.zeros(source.shape)
+        embedding[s:t+1]= torch.arange(1, t-s+2, dtype=source.dtype)
+        return embedding
+
+    def get_embeddings_kgpt(self, source):
+
+        ent_ind = (source == self.ent).nonzero(as_tuple=True)[0]
+        first_ent_ind = ent_ind[0]
+        last_triple_ind = (source == self.triple).nonzero(as_tuple=True)[0][-1]
+        entity_ids = self.get_entity_embedding_kgpt(source)
+        triple_ids = self.get_triples_embedding_kgpt(source)
+        position_ids = self.get_position_embedding(first_ent_ind, last_triple_ind, source)
+        assert source.size(0) == entity_ids.size(0) == triple_ids.size(0) == position_ids.size(0) 
+
+        return {
+            "input_ids": source,
+            "entity_ids": entity_ids,
+            "triple_ids": triple_ids,
+            "position_ids": position_ids
+        }
+    
+
+triples = "[en_XX] [ENT] ▁Romania [TRIPLE] [PRED] ▁description [SUB] ▁Romania [TRIPLE] [PRED] ▁country [SUB] ▁Alba ▁Iulia [TRIPLE] [ENT] ▁Romania [TRIPLE] [PRED] ▁description [SUB] ▁Romania [TRIPLE] [PRED] ▁country [SUB] ▁Alba ▁Iulia [TRIPLE]"
+
+from fairseq.data.dictionary import Dictionary
+if __name__=="__main__":
+    tgt_dict = Dictionary.load("/media/MyDataStor1/jxian/efs-storage/tokenizer/mbart50/dict/dict.mbart50_wtags.txt")
+    emb = Kg2textEmbedding(tgt_dict)
+    src_tokens = tgt_dict.encode_line(triples, append_eos=True, add_if_not_exist=False)
+
+    emb.get_triples_embedding_kgpt(src_tokens)
+    embeddings = emb.get_embeddings_kgpt(src_tokens)
+
+    print(1)
 
 
 
@@ -72,7 +203,7 @@ self_sub = 6
 self_replace_length = -1
 self_mask_idx = 250053
 mask_random = torch.tensor([])
-self_vocab = 
+self_vocab = None
 
 self_mask_span_distribution = None
 source = torch.tensor([4, 250004,      3,  16554,  34212, 3324,    4,      3,  76811,      6,  16554,      4,

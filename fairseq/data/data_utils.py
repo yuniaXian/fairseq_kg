@@ -68,6 +68,9 @@ def collate_tokens(
         copy_tensor(v, res[i][size - len(v) :] if left_pad else res[i][: len(v)])
     return res
 
+#tokens = [torch.tensor([1,2,3,4,5]), torch.tensor([6,7,8,9, 1,2,3,4,5])]
+#collate_tokens(tokens, 4)
+
 
 def load_indexed_dataset(
     path, dictionary=None, dataset_impl=None, combine=False, default="cached"
