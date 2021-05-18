@@ -42,3 +42,6 @@ if __name__ == "__main__":
 
     for split in ["train", "test", "eval"]:
         build_fairseq_dataset(data_cfg, split, task.src_dict, task.tgt_dict, add_bos=True, add_eos=False)
+
+
+# todo get dataset from wikidata
