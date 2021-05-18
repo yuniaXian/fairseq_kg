@@ -28,7 +28,7 @@ CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --seed 222 --log-format simple --log-interval 2 \
     --layernorm-embedding  --ddp-backend no_c10d \
     --batch-size 32 --num-workers 8 --required-batch-size-multiple 8 \
-    --log-format simple
+    --log-format simple --seed 222
 #----restore-file $PRETRAIN \
 # --langs ${langs}
 # --reset-optimizer --reset-meters --reset-dataloader --reset-lr-scheduler \

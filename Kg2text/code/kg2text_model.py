@@ -255,7 +255,6 @@ class MultiHeadAttention(nn.Module):
         self.w_qs = nn.Linear(d_model, n_head * d_k)
         self.w_ks = nn.Linear(d_model, n_head * d_k)
         self.w_vs = nn.Linear(d_model, n_head * d_v)
-        nn.init.normal_(self.w_qs.weight, mean=0, std=np.sqrt(2.0 / (d_model + d_k)))
         nn.init.normal_(self.w_ks.weight, mean=0, std=np.sqrt(2.0 / (d_model + d_k)))
         nn.init.normal_(self.w_vs.weight, mean=0, std=np.sqrt(2.0 / (d_model + d_v)))
 
@@ -264,13 +263,11 @@ class MultiHeadAttention(nn.Module):
 
         self.fc = nn.Linear(n_head * d_v, d_model)
         nn.init.xavier_normal_(self.fc.weight)
-
         self.dropout = nn.Dropout(dropout)
 
 
     def forward(self, q, k, v, mask=None):
 
-        d_k, d_v, n_head = self.d_k, self.d_v, self.n_head
 
         sz_b, len_q, _ = q.size()
         sz_b, len_k, _ = k.size()
@@ -962,7 +959,7 @@ class Kg2textTransformerModel(FairseqEncoderDecoderModel):
         argument in its input, which is not supported in torchscript. This
         method overwrites the forward method definition without **kwargs.
         """
-
+        samples["net_input"]["src_token"]
         encoder_out = self.encoder(src_tokens=src_tokens, src_lengths=src_lengths)
         decoder_out, extra = self.decoder(
             prev_output_tokens, encoder_out=encoder_out,

@@ -7,5 +7,3 @@ fairseq-generate $data_dir \
   --path $model \
   --bpe 'sentencepiece' --sentencepiece-model ${sentencepiece_model} \
   --beam 5
-
-sfadsf

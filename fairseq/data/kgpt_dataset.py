@@ -9,10 +9,127 @@ import logging
 
 import numpy as np
 import torch
+from torch.nn.functional import embedding
 from fairseq.data import FairseqDataset, data_utils
 
 
 logger = logging.getLogger(__name__)
+
+
+class Kg2textEmbedding:
+
+    def __init__(self, dictionary) -> None:
+        """ 
+        ent
+        triple
+        sub
+        prep
+        kg
+        text
+        """
+        
+        self.dict = dictionary
+        self.eos = self.dict.eos()
+        self.bos = self.dict.bos()
+        self.ent = self.dict.index("[ENT]")
+        self.triple = self.dict.index("[TRIPLE]")
+        self.sub = self.dict.index("[SUB]")
+        self.pred = self.dict.index("[PRED]")
+        self.kg = self.dict.index("[KG]")
+        self.lang = self.dict.index("[en_XX]")
+        self.text = self.dict.index("[TEXT]")
+
+
+    def get_intervals(self, tag_s, tag_t, source):
+        # get intervals index of all nearest pair tag_s, tag_t (tokens included)
+        s_inds = (source==tag_s).nonzero(as_tuple=True)[0]
+        t_inds = (source==tag_t).nonzero(as_tuple=True)[0]
+        mask = (t_inds>s_inds.unsqueeze(1))
+        inds_matrix = torch.arange(mask.shape[1], 0, -1)
+        inds_masked = mask*inds_matrix
+        inds = torch.argmax(inds_masked, 1)
+        
+        paired_t_inds = t_inds[inds]
+
+        mask2 = (s_inds<paired_t_inds)
+        intervals = torch.stack([s_inds, paired_t_inds], 1)
+        intervals = intervals[mask2]
+
+        return intervals
+
+
+    def get_one_triple_embedding_kgpt(self, source, embedding):
+        # "[ENT] ▁Romania [TRIPLE] [PRED] ▁description [SUB] ▁Romania [TRIPLE] [PRED] ▁country [SUB] ▁Alba ▁Iulia [TRIPLE]"
+        ent_inds = (source == self.ent).nonzero(as_tuple=True)[0]
+        pred_triple_intervals = self.get_intervals(self.pred, self.triple, source)
+        
+        first_pred_index = pred_triple_intervals[0][0]
+        # fill 1s between [ENT] and [TRIPLE], [TRIPLE] not included
+        embedding[range(ent_inds[0], first_pred_index-1)] = 1
+        embedding[first_pred_index-1] = 2
+
+        i = 0
+        for s, t in pred_triple_intervals:
+            embedding[range(s,t+1)] = i+2
+            i += 1
+        return embedding
+
+
+    def get_triples_embedding_kgpt(self, source):
+        
+        ent_inds = (source == self.ent).nonzero(as_tuple=True)[0]
+
+        embedding = torch.zeros(source.shape)
+        if ent_inds.size(0) == 1:
+            s, t = ent_inds[0], embedding.size(0)
+        
+        elif ent_inds.size(0) > 1:
+            for i in range(ent_inds.size(0)):
+                s, t = int(ent_inds[i]), ent_inds[i+1] if i+1<ent_inds.size(0) else source.size(0)-1
+                self.get_one_triple_embedding_kgpt(source[s : t], embedding[s : t])
+        else:
+            return torch.tensor([], dtype=source.dtype)
+
+        return embedding
+
+    def get_entity_embedding_kgpt(self, source):
+        # TODO only with one ent_inds
+        ent_inds = (source == self.ent).nonzero(as_tuple=True)[0]
+        embedding = torch.zeros(source.shape)
+
+        if ent_inds.size(0) == 1:
+            embedding[ent_inds[0]:] = 1
+        elif ent_inds.size(0) > 1:
+            for i in range(ent_inds.size(0)):
+                s, t = ent_inds[i], ent_inds[i+1] if i+1<ent_inds.size(0) else source.size(0)-1
+                embedding[s : t] = i + 1
+        else:
+            return torch.tensor([], dtype=source.dtype)
+
+        return embedding
+
+    def get_position_embedding(self, s, t, source):
+       
+        embedding = torch.zeros(source.shape)
+        embedding[s:t+1]= torch.arange(1, t-s+2, dtype=source.dtype)
+        return embedding
+
+    def get_embeddings_kgpt(self, source):
+
+        ent_ind = (source == self.ent).nonzero(as_tuple=True)[0]
+        first_ent_ind = ent_ind[0]
+        last_triple_ind = (source == self.triple).nonzero(as_tuple=True)[0][-1]
+        entity_ids = self.get_entity_embedding_kgpt(source)
+        triple_ids = self.get_triples_embedding_kgpt(source)
+        position_ids = self.get_position_embedding(first_ent_ind, last_triple_ind, source)
+        assert source.size(0) == entity_ids.size(0) == triple_ids.size(0) == position_ids.size(0) 
+
+        return {
+            "input_ids": source,
+            "entity_ids": entity_ids,
+            "triple_ids": triple_ids,
+            "position_ids": position_ids
+        }
 
 
 def collate(
@@ -24,6 +141,7 @@ def collate(
     input_feeding=True,
     pad_to_length=None,
     pad_to_multiple=1,
+    kgpt_embedding=False
 ):
     if len(samples) == 0:
         return {}
@@ -112,11 +230,19 @@ def collate(
     else:
         ntokens = src_lengths.sum().item()
 
+    input_ids, entity_ids, triple_ids, position_ids = samples["input_ids"], \
+        samples["entity_ids"], samples["triple_ids"], samples["position_ids"]
+
+
+    if kgpt_embedding:
+        src_tokens = (input_ids, entity_ids, triple_ids, position_ids)
+
+    # TODO src_tokens = torch.cat( [input_ids, ent_ids, …], dim=1)
     batch = {
         "id": id,
         "nsentences": len(samples),
         "ntokens": ntokens,
-        "net_input": {"src_tokens": src_tokens, "src_lengths": src_lengths,},
+        "net_input": {"src_tokens": src_tokens, "input_ids": input_ids , "src_lengths": src_lengths,},
         "target": target,
     }
     if prev_output_tokens is not None:
@@ -343,11 +469,14 @@ class LanguagePairDataset(FairseqDataset):
             "target": tgt_item,
         }
 
-        if self.kgpt_embedding is not None: 
-            example["input_ids"]: src_item,
-            example["entity_ids"]: entity_ids,
-            example["triple_ids"]: triple_ids,
-            example["position_ids"]: position_ids
+        if self.kgpt_embedding is not None:
+            emb = Kg2textEmbedding(self.tgt_dict)
+            embedding = emb.get_embeddings_kgpt(src_item)
+
+            example["input_ids"] = embedding["input_ids"]
+            example["entity_ids"] = embedding["entity_ids"]
+            example["triple_ids"] = embedding["triple_ids"]
+            example["position_ids"] = embedding["position_ids"]
 
         if self.align_dataset is not None:
             example["alignment"] = self.align_dataset[index]
