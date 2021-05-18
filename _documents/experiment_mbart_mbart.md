@@ -1,12 +1,15 @@
-# mbart25/50 with special tokens without entity, triple or position embedding:
+# mbart25/50 with tags without entity, triple or position embedding:
 + setting:
     + aligned tokenizers in both sides (encoder and decoder)
         + bpe model: sentencepiece
         + dictionary: mbart50 dictionary with added tags:
             
 
-
++ finetune: 54.02 54.28
++ train from scratch: Generate test with beam=5: BLEU4 = 47.51, 78.7/59.2/45.2/35.9 (BP=0.906, ratio=0.910, syslen=46654, reflen=51247)
 # mbart25/50 without special tokens:
++ finetune: 54.25
++ train from scratch: Generate test with beam=5: BLEU4 = 46.95, 79.5/59.8/45.8/36.3 (BP=0.886, ratio=0.892, syslen=45701, reflen=51247)
 
 
 
