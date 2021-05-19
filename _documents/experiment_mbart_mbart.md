@@ -12,10 +12,12 @@
 + train from scratch: Generate test with beam=5: BLEU4 = 46.95, 79.5/59.8/45.8/36.3 (BP=0.886, ratio=0.892, syslen=45701, reflen=51247)
 
 
+# 768 embedding size /6 layers/ 8 heads transformer:
++ with tags: 47.10 with 3e-5 lr/46.49 with 1e-04 lr
++ without tags: 46.81 with 3e-5 lr
 
-# mbart25/50 raw text:
+# using gpt2 encoder:
 
-# bart finetune 768 
 
 # denoising task:
     + special tokens:

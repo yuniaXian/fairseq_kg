@@ -24,7 +24,7 @@ CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --lr-scheduler inverse_sqrt --lr "1e-05" --stop-min-lr '-1' \
     --warmup-updates 2500 --max-update 40000 \
     --dropout 0.3 --attention-dropout 0.1 \
-    --weight-decay 0.0 --max-tokens 4096 --update-freq 1 --save-interval 1 \
+    --weight-decay 0.0 --max-tokens 3072 --update-freq 1 --save-interval 1 \
     --save-interval-updates 8000 --keep-interval-updates 10 --no-epoch-checkpoints \
     --seed 222 --log-format simple --log-interval 2 \
     --layernorm-embedding  --ddp-backend no_c10d \

@@ -11,6 +11,8 @@ import torch
 from . import FairseqDataset, data_utils
 
 
+
+
 def collate(
     samples,
     pad_idx,
@@ -207,10 +209,7 @@ class DenoisingDataset(FairseqDataset):
             # ent part: between [ENT] and [TRIPLE]
             # sub part: between [SUB] and [TRIPLE]
             # pred part: between [PRED] and [SUB]
-            def get_triples_indices(source):
-                triple_starts = source.index(self.triple)
-                triple_ends = [source[s:].index(self.triple) for s in triple_starts]
-                
+             
 
             def add_whole_ent_mask(source, p):
                 # determine where is ent part
@@ -237,13 +236,14 @@ class DenoisingDataset(FairseqDataset):
                 # entities to be masked
 
             
-            def add_whole_pred_mask(source, self.mask_ent_ratio):
+            def add_whole_propery_mask(self, source, p, mask_tags=False):
+                # mask one class of property with ratio p
                 pass
 
-            def add_whole_sub_mask(source, self.mask_ent_ratio):
+            def add_tag_mask_only(self, source, p, tag):
                 pass
             
-            def hybri():
+            def ratio_partition(self):
                 pass
             
             if self.mask_ent_ratio > 0:

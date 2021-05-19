@@ -50,6 +50,7 @@ class Kg2textEmbedding:
         self.kg = self.dict.index("[KG]")
         self.lang = self.dict.index("[en_XX]")
         self.text = self.dict.index("[TEXT]")
+        self.mask = self.dict.index("<mask>")
 
 
     def get_intervals(self, tag_s, tag_t, source):
@@ -142,17 +143,91 @@ class Kg2textEmbedding:
             "triple_ids": triple_ids,
             "position_ids": position_ids
         }
-    
+
+    def add_whole_propery_mask(self, source, p, mask_tags=False):
+        # determine where is ent part
+        # [TRIPLE] [ENT]... [PRED]...[SUB] ...[TRIPLE]
+
+        intervals = self.get_intervals(self.ent, self.pred, source)
+        # TODO: check return dtype
+
+        if mask_tags == False:
+            intervals[:,0] = intervals[:,0] + 1
+            #intervals[:,1] = intervals[:, 1] + 1
+        num_to_mask = int(math.ceil(intervals.size(0)* p))
+        if num_to_mask == 0:
+            return source
+
+        # TODO remove these debug settings
+        self.mask_span_distribution = None
+        self.replace_length = 1
+        if self.mask_span_distribution is not None:
+            raise NotImplementedError
+        else:
+            intervals_to_mask = intervals[torch.randperm(intervals.size(0))[:num_to_mask]]
+            #res = map(torch.arange(), intervals[intervals_indices])
+            indices_to_mask = torch.tensor([], dtype = intervals.dtype)
+            for interval in intervals_to_mask:
+                indices_to_mask = torch.cat((indices_to_mask, torch.arange(*interval)), 0)
+
+        source_length = source.size(0)
+        to_keep = torch.ones(source_length, dtype=torch.bool)
+
+        if self.replace_length == 0:
+            to_keep[indices_to_mask] = 0
+        else:
+            # keep index, but replace it with [MASK]
+            source[indices_to_mask] = self.mask
+            """
+            source[indices[mask_random]] = torch.randint(
+                1, len(self_vocab), size=(mask_random.sum(),)
+            )
+            """
+        
+        print("Done")
+
+
+    def add_tag_mask_only(self, source, p, tag):
+        indices = (source==tag).nonzero(as_tuple=True)[0]
+        num_to_mask = int(math.ceil(indices.size(0)* p))
+        if num_to_mask == 0:
+            return source
+        
+        self.mask_span_distribution = None
+        self.replace_length = 1
+        if self.mask_span_distribution is not None:
+            raise NotImplementedError
+        else:
+            indices_to_mask = indices[torch.randperm(indices.size(0))[:num_to_mask]]
+            #res = map(torch.arange(), indices[intervarls_indices])
+
+        source_length = source.size(0)
+        to_keep = torch.ones(source_length, dtype=torch.bool)
+
+        if self.replace_length == 0:
+            to_keep[indices_to_mask] = 0
+        else:
+            # keep index, but replace it with [MASK]
+            source[indices_to_mask] = self.mask
+            """
+            source[indices[mask_random]] = torch.randint(
+                1, len(self_vocab), size=(mask_random.sum(),)
+            )
+            """
+        
+        print("Done")
 
 triples = "[en_XX] [ENT] ▁Romania [TRIPLE] [PRED] ▁description [SUB] ▁Romania [TRIPLE] [PRED] ▁country [SUB] ▁Alba ▁Iulia [TRIPLE] [ENT] ▁Romania [TRIPLE] [PRED] ▁description [SUB] ▁Romania [TRIPLE] [PRED] ▁country [SUB] ▁Alba ▁Iulia [TRIPLE]"
 
 from fairseq.data.dictionary import Dictionary
 if __name__=="__main__":
-    tgt_dict = Dictionary.load("/media/MyDataStor1/jxian/efs-storage/tokenizer/mbart50/dict/dict.mbart50_wtags.txt")
+    #tgt_dict = Dictionary.load("/media/MyDataStor1/jxian/efs-storage/tokenizer/mbart50/dict/dict.mbart50_wtags.txt")
+    tgt_dict = Dictionary.load("/home/ubuntu/efs-storage/tokenizer/mbart50/dict/dict.mbart50_wtags.txt")
     emb = Kg2textEmbedding(tgt_dict)
     src_tokens = tgt_dict.encode_line(triples, append_eos=True, add_if_not_exist=False)
 
-    emb.get_triples_embedding_kgpt(src_tokens)
+    res = emb.add_tag_mask_only(src_tokens, 0.7, emb.ent)
+    res = emb.add_whole_ent_mask_one_triple(src_tokens, 1, mask_tags=True)
     embeddings = emb.get_embeddings_kgpt(src_tokens)
 
     print(1)
