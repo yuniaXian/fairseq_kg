@@ -13,13 +13,15 @@ def del_tags(tags, load_file, save_file,right_pad_space=False, left_pad_space=Fa
 
 
     with open (save_file,"w") as f1:
-        
+        print(tags)
         for line in lines:
             for tag in tags:
                 line = line.replace(tag, "")
+                f1.write(line)
+        print(line)
     f1.close()
 
-if __name__ == "main":
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--load_file", help="load file")
     parser.add_argument("--save_file", help="save file")

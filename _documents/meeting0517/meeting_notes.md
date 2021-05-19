@@ -4,6 +4,7 @@
 - [experiment setting:](#experiment-setting)
 - [decode setting:](#decode-setting)
 - [script:](#script)
+- [torch:](#torch)
 
 # kgpt dataset:
 How the samples loaded into model? \
@@ -40,4 +41,21 @@ sacrebleu -tok 'none' -s 'none' ${source_lang}_${target_lang}.ref < ${source_lan
 
 ```
 
+# torch:
+[filter_vals_in_tensor](https://intellipaat.com/community/19982/filter-a-tensor-on-the-basis-of-a-python-list-in-tensorflow)
+```
+import tensorflow as tf
 
+with tf.Graph().as_default(), tf.Session() as sess:
+
+    l = tf.constant([1, 2, 3], dtype=tf.int64)
+
+    a = tf.constant([1, 2, 3, 4], dtype=tf.int64)
+
+    m = tf.reduce_any(tf.equal(tf.expand_dims(a, 1), l), axis=1)
+
+    b = tf.boolean_mask(a, m)
+
+    print(sess.run(b))
+
+```
