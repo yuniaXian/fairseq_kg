@@ -59,3 +59,15 @@ with tf.Graph().as_default(), tf.Session() as sess:
     print(sess.run(b))
 
 ```
+
+```
+    indices = tf.constant([[4], [3], [1], [7]])
+    updates = tf.constant([9, 10, 11, 12])
+    shape = tf.constant([8])
+    scatter = tf.scatter_nd(indices, updates, shape)
+    print(scatter)
+
+
+
+
+```

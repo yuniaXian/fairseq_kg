@@ -2,15 +2,37 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Python: Current File",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal"
+    },
+
+    {
+      "name": "Python: metric",
+      "type": "python",
+      "request": "launch",
+      "program": "/home/ubuntu/Data-to-text-Evaluation-Metric/measure_scores.py",
+      "console": "integratedTerminal",
+      "args": [
+        "/home/ubuntu/efs-storage/dataset/webnlg/test.txt",
+        "/home/ubuntu/logs/eval_mbart50_ft_wtags.hyp"
+      ]
+    },
+    {
       "name": "Python: del_tags",
       "type": "python",
       "request": "launch",
       "program": "/home/ubuntu/fairseq/Kg2text/data_utils/del_tags.py",
       "console": "integratedTerminal",
       "args": [
-          "--load_file", "/home/ubuntu/logs/decoded_result_kgpt_wtags.txt",
-          "--save_file", "/home/ubuntu/logs/decoded_results/test.txt",
-          "--tags_to_del", "[en_XX]"
+        "--load_file",
+        "/home/ubuntu/logs/decoded_result_kgpt_wtags.txt",
+        "--save_file",
+        "/home/ubuntu/logs/decoded_results/test.txt",
+        "--tags_to_del",
+        "[en_XX]"
       ]
     },
     {

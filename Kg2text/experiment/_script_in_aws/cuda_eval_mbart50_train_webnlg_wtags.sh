@@ -1,6 +1,6 @@
 CUDA=$1
 base=/home/ubuntu
-model=${base}/checkpoints/mbart50_mbart50_finetune_webnlg_wtags/checkpoint_best.pt
+model=${base}/efs-storage/checkpoints/mbart50_train_webnlg_wtags/checkpoint_best.pt
 data_dir=${base}/efs-storage/data-bin/webnlg/wtags
 sentencepiece_model=${base}/efs-storage/tokenizer/mbart50/bpe/sentence.bpe.model
 FAIRSEQ=${base}/fairseq/fairseq_cli

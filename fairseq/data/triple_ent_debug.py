@@ -43,7 +43,9 @@ class Kg2textEmbedding:
         self.dict = dictionary
         self.eos = self.dict.eos()
         self.bos = self.dict.bos()
+        self.unk = self.dict.unk()
         self.ent = self.dict.index("[ENT]")
+        self.unk = self.dict.index("<unk>")
         self.triple = self.dict.index("[TRIPLE]")
         self.sub = self.dict.index("[SUB]")
         self.pred = self.dict.index("[PRED]")
@@ -51,6 +53,19 @@ class Kg2textEmbedding:
         self.lang = self.dict.index("[en_XX]")
         self.text = self.dict.index("[TEXT]")
         self.mask = self.dict.index("<mask>")
+        self.special_tokens = torch.tensor([
+            self.eos,
+            self.bos,
+            self.ent,
+            self.unk,
+            self.triple,
+            self.sub,
+            self.pred,
+            self.kg,
+            self.lang,
+            self.text,
+            self.mask
+        ], dtype = torch.int64)
 
 
     def get_intervals(self, tag_s, tag_t, source):
@@ -186,6 +201,11 @@ class Kg2textEmbedding:
         
         print("Done")
 
+    def get_words_indices(self, source):
+        mask = torch.any(source.unsqueeze(1) == self.special_tokens, 1)
+        word_indices = torch.masked_select(source, ~mask)
+        return word_indices
+
 
     def add_tag_mask_only(self, source, p, tag):
         indices = (source==tag).nonzero(as_tuple=True)[0]
@@ -225,6 +245,17 @@ if __name__=="__main__":
     tgt_dict = Dictionary.load("/home/ubuntu/efs-storage/tokenizer/mbart50/dict/dict.mbart50_wtags.txt")
     emb = Kg2textEmbedding(tgt_dict)
     src_tokens = tgt_dict.encode_line(triples, append_eos=True, add_if_not_exist=False)
+
+    import tensorflow as tf
+
+    indices = tf.constant([[4], [3], [1], [7]])
+    updates = tf.constant([9, 10, 11, 12])
+    shape = tf.constant([8])
+    scatter = tf.scatter_nd(indices, updates, shape)
+    print(scatter)
+
+
+    res = emb.get_words_indices(src_tokens)
 
     res = emb.add_tag_mask_only(src_tokens, 0.7, emb.ent)
     res = emb.add_whole_ent_mask_one_triple(src_tokens, 1, mask_tags=True)
