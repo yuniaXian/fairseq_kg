@@ -2,13 +2,29 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Python: Current File",
+      "name": "Python: aws: create_dataset.py",
       "type": "python",
       "request": "launch",
-      "program": "${file}",
-      "console": "integratedTerminal"
+      "program": "./Kg2text/code/create_dataset.py",
+      "console": "integratedTerminal",
+      "args":[
+        "--option", "kg2kg",
+        "--seperate", "",
+        "--text_only", "",
+        "--simple", "",
+        "--tokenized", "True",
+        "--tagged", "True", 
+        "--dataset", "webnlg",
+        "--add_eos", "",
+        "--add_bos", "",
+        "--config_file", "triples_dataset.yaml",
+        "--setting_file", "token_setting.yaml",
+        "--data_dir", "/home/ubuntu/efs-storage/data-bin",
+        "--efs", "/home/ubuntu/efs-storage"
+      ],
+      "env": {"PYTHONPATH": "${workspaceRoot}"},
+      "envFile": "${workspaceFolder}/.env"
     },
-
     {
       "name": "Python: metric",
       "type": "python",
@@ -252,13 +268,13 @@
       ]
     },
     {
-      "name": "Python: denoising_task",
+      "name": "Python: aws denoising_task",
       "type": "python",
       "request": "launch",
-      "program": "/home/xianjiay/efs-storage/workspaces/hoverboard/fairseq/fairseq_cli/train.py",
+      "program": "/home/ubuntu/fairseq/fairseq_cli/train.py",
       "console": "integratedTerminal",
       "args": [
-        "~/efs-storage/data-bin/webnlg/sentencepiece_bped_data",
+        "/home/ubuntu/efs-storage/data-bin/webnlg/sentencepiece_bped_data",
         "--encoder-normalize-before",
         "--decoder-normalize-before",
         "--arch",
@@ -352,7 +368,7 @@
         "--bpe",
         "sentencepiece",
         "--sentencepiece-model",
-        "Kg2text/tokenizer/mbart50/bpe/sentence.bpe.model",
+        "/home/ubuntu/efs-storage/tokenizer/mbart50/bpe/sentence.bpe.model",
         "--train-subset",
         "train.input",
         "--valid-subset",

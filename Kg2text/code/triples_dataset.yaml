@@ -1,0 +1,24 @@
+dataset: webnlg
+split: test
+project_dir: ""
+sentencepiece:
+  sentencepiece_model: sentence.bpe.model
+option: eval
+tokenizer_src: sentenpiece
+tokenizer_tgt: sentenpiece
+vocab_file_src: "dict.mbart50_wtags.txt"
+vocab_file_tgt: "dict.mbart50_wtags.txt"
+src_lang: "en_XX"
+tgt_lang: "en_XX"
+tgt_lang_tag_template: "[{}]"
+src_lang_tag_template: "[{}]"
+prepend_src_lang_tag: False
+prepend_tgt_lang_tag: False
+train_file: train.json
+test_file: test.json
+eval_file: eval.json
+knowledge_file: knowledge-full.json
+percent: 1.0
+encoder_arch: sequence
+max_fact: 8
+max_entity: 12

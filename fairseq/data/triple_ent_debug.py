@@ -205,7 +205,49 @@ class Kg2textEmbedding:
         mask = torch.any(source.unsqueeze(1) == self.special_tokens, 1)
         word_indices = torch.masked_select(source, ~mask)
         return word_indices
+    
+    def masking_manage(self, p, source):
+        # just one property will be masked for one entity
+        # get numbers of triples in one sample
+        triples_intervals= self.get_intervals(self.triple, self.triple, source)
+        triples_intervals[:,1] = triples_intervals[:, 1] + 1 # includes the last token in range
+        num_triples = triples_intervals.size(0)//2
+        
+        num_to_mask = int(math.ceil(num_triples * p))
+        # if for kgpt, the num of entities should be taken into account to compute the num of triples
 
+        if num_to_mask == 0:
+            return
+        indices_of_intervals_to_mask = torch.randperm(num_triples)[:num_to_mask]
+        # randonly choose which part to mask, 0: ent, 1: pred, 2: sub
+        mask_task_assign = torch.remainder(torch.randperm(3), 3)[:num_to_mask]
+
+        pred_mask = (mask_task_assign == 0) 
+        ent_mask = (mask_task_assign == 1)
+        sub_mask = (mask_task_assign == 2)
+
+        intervals_to_pred_mask = triples_intervals[torch.masked_select(indices_of_intervals_to_mask, pred_mask)]
+        intervals_to_ent_mask = triples_intervals[torch.masked_select(indices_of_intervals_to_mask, ent_mask)]
+        intervals_to_sub_mask = triples_intervals[torch.masked_select(indices_of_intervals_to_mask, sub_mask)]
+
+        pred_indices_to_mask = torch.tensor([], dtype = source.dtype)
+        ent_indices_to_mask = torch.tensor([], dtype = source.dtype)
+        sub_indices_to_mask = torch.tensor([], dtype = source.dtype)
+
+        for interval in intervals_to_pred_mask:
+            pred_indices_to_mask = torch.cat((pred_indices_to_mask, torch.arange(*interval)))
+
+        for interval in intervals_to_ent_mask:
+            ent_indices_to_mask = torch.cat((ent_indices_to_mask, torch.arange(*interval)))
+
+        for interval in intervals_to_sub_mask:
+            sub_indices_to_mask = torch.cat((sub_indices_to_mask, torch.arange(*interval)))
+
+
+
+        pred_part = source[pred_indices_to_mask.long()]
+        ent_part = source[ent_indices_to_mask.long()]
+        sub_part = source[sub_indices_to_mask.long()]
 
     def add_tag_mask_only(self, source, p, tag):
         indices = (source==tag).nonzero(as_tuple=True)[0]
@@ -246,15 +288,7 @@ if __name__=="__main__":
     emb = Kg2textEmbedding(tgt_dict)
     src_tokens = tgt_dict.encode_line(triples, append_eos=True, add_if_not_exist=False)
 
-    import tensorflow as tf
-
-    indices = tf.constant([[4], [3], [1], [7]])
-    updates = tf.constant([9, 10, 11, 12])
-    shape = tf.constant([8])
-    scatter = tf.scatter_nd(indices, updates, shape)
-    print(scatter)
-
-
+    res = emb.masking_manage(1,src_tokens)
     res = emb.get_words_indices(src_tokens)
 
     res = emb.add_tag_mask_only(src_tokens, 0.7, emb.ent)
