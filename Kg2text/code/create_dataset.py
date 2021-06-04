@@ -197,31 +197,26 @@ class Kg2KgDataset(Dataset):
         self.add_eos=args.add_eos
         self.add_bos=args.add_bos
 
-        file_path = getattr(cfg, cfg.split+"_file", "")
+        file_path = getattr(cfg, split+"_file", "")
         #knowledge_path = getattr(cfg, knowledge_file, "")
         if file_path == "":
             logger.warning("Dataset for task: ", cfg.option, " is not specified, using eval dataset.")
-            file_path = cfg.eval_file
-        if cfg.dataset != "kgtext_wikidata":
-            with open(file_path, 'r') as f:
-                self.data = json.load(f)
-                print("Loaded data from ", file_path, " for task ", cfg.split)
-            f.close()
-            if cfg.percent > 1:
-                self.data = self.data[:int(self.percent)]
-            else:
-                selected_size = int(len(self.data) * self.percent)
-                self.data = self.data[:selected_size]
-        else:
-            with open(knowledge_path, 'r') as f:
-                self.knowledge = json.load(f)
-                print("Loaded data from ", knowledge_path, " for task ")
+            file_path = cfg.valid_file
 
-            if cfg.percent > 1:
-                self.knowledge = self.knowledge[:int(self.percent)]
-            else:
-                selected_size = int(len(self.knowledge) * self.percent)
-                self.knowledge = self.knowledge[:selected_size]
+        with open(file_path, 'r') as f:
+            self.data = json.load(f)
+            print("Loaded data from ", file_path, " for task ", cfg.split)
+        f.close()
+        if cfg.percent > 1:
+            self.data = self.data[:int(self.percent)]
+        else:
+            selected_size = int(len(self.data) * self.percent)
+            self.data = self.data[:selected_size]
+        
+        if cfg.dataset == "kgtext_wikidata":
+            with open(cfg.knowledge_file, 'r') as f:
+                self.knowledge = json.load(f)
+                print("Loaded data from ", cfg.knowledge_file, " for task ")
 
     def tokenize_text(self, text, tokenizer, type):
         if type in ["sentencepiece", "mbart", "mbart50"]:
@@ -411,9 +406,8 @@ class Kg2KgDataset(Dataset):
     def __len__(self):
         return len(self.data)
 
-    def write2file(self, setting, save_data_dir, file_name):
+    def write2file(self, setting, file_name):
         L = len(self.data)
-        file_name = os.path.join(save_data_dir, file_name)
         
         with open(file_name, "w") as f1:
             #f1.write(x["text_bped"]+"\n"
@@ -450,13 +444,12 @@ class Kg2KgDataset(Dataset):
 
             f1.close()
 
-    def write2file2(self, setting, save_data_dir, file_name):
+    def write2file2(self, setting, file_name):
         L = len(self.data)
-        file_name = os.path.join(save_data_dir, file_name)
         
         with open(file_name, "w") as f1:
             for i in range(L):
-                entry = self.knowledge[i]
+                entry = self.data[i]
 
                 sentence = ' '.join(entry['text'])
                 entities = []
@@ -544,7 +537,9 @@ def get_dataset_args():
     parser.add_argument("--dataset", type=str, default="webnlg", help="specify dataset")
     parser.add_argument("--config_file", type=str, default="triples_dataset.yaml", help="specify config yaml file")
     parser.add_argument("--setting_file", type=str, default="token_setting.yaml", help="setting to create different types of datasets")
-    parser.add_argument("--data_dir", type=str, default="", help="specify data dir")
+    parser.add_argument("--load_data_dir", type=str, default="", help="specify loading data from data dir")
+    parser.add_argument("--save_data_dir", type=str, default="", help="specify saving data dir")
+    parser.add_argument("--lang", type=str, default="en_XX", help="lang tag")
     parser.add_argument("--efs", type=str, default="", help="dir of efs")
     
     args = parser.parse_args()
@@ -571,21 +566,21 @@ def get_abs_project_path(project_name="Kg2text", project_path=None):
     return project_path
 
 
-
-
 def update_cfg(cfg, args):
     cfg.dataset = args.dataset
     cfg.project_dir = get_abs_project_path()
     cfg.efs = args.efs
-    data_dir = args.data_dir
+    load_data_dir = args.load_data_dir
 
-    cfg.train_file = data_dir + os.sep + cfg.dataset + os.sep + "raw_data" + os.sep + cfg.train_file
-    cfg.test_file = data_dir + os.sep + cfg.dataset + os.sep + "raw_data" + os.sep + cfg.test_file
-    cfg.eval_file = data_dir + os.sep + cfg.dataset + os.sep + "raw_data" + os.sep + cfg.eval_file
+    for split in ["train", "test", "valid"]:
+        #file_abs_path = load_data_dir + os.sep + cfg.dataset + os.sep + "raw_data" + os.sep + cfg.train_file
+        file_abs_path = os.path.join(load_data_dir, cfg.dataset, getattr(cfg, split+"_file"))
+        setattr(cfg, split+"_file", file_abs_path)
 
-    cfg.sentencepiece.sentencepiece_model = args.efs + os.sep + os.path.join("tokenizer", "mbart50", "bpe", cfg.sentencepiece.sentencepiece_model)
-    cfg.vocab_file_src = args.efs + os.sep + os.path.join("tokenizer", "mbart50", "dict", cfg.vocab_file_src)
-    cfg.vocab_file_tgt = args.efs + os.sep + os.path.join("tokenizer", "mbart50", "dict", cfg.vocab_file_tgt)
+    cfg.sentencepiece.sentencepiece_model = os.path.join(args.efs, "tokenizer", "mbart50", "bpe", cfg.sentencepiece.sentencepiece_model)
+    cfg.vocab_file_src = os.path.join(args.efs, "tokenizer", "mbart50", "dict", cfg.vocab_file_src)
+    cfg.vocab_file_tgt = os.path.join(args.efs, "tokenizer", "mbart50", "dict", cfg.vocab_file_tgt)
+    cfg.knowledge_file = os.path.join(load_data_dir, "kgtext_wikidata", getattr(cfg, "knowledge_file"))
 
 
 def update_setting(setting, args):
@@ -599,27 +594,36 @@ if __name__ == "__main__":
     args = get_dataset_args()
     print(args)
     project_abs_dir = get_abs_project_path()
-    data_dir = args.data_dir
+    load_data_dir = args.load_data_dir
+    save_data_dir = args.save_data_dir
     cfg = OmegaConf.load(project_abs_dir + os.sep + "code"+ os.sep + args.config_file)
     setting = OmegaConf.load(project_abs_dir + os.sep + "code"+ os.sep + args.setting_file)
     update_cfg(cfg, args)
     update_setting(setting, args)
     #src_dict = Dictionary.load(cfg.vocab_file_src)
     tgt_dict = Dictionary.load(cfg.vocab_file_tgt)
-
     bpe = SentencepieceBPE(cfg.sentencepiece)
-
-    if args.option == "kg2kg":
-        for split in ["train", "test", "eval"]:
-            data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args)
-            data.write2file(setting, args.data_dir, "trial.txt")
-
-    elif args.option == "kg2text":
-        for split in ["train", "test", "eval"]:
-            data = Kg2TextDataset(cfg, split, tgt_dict, tgt_dict, args)
-            data.write2file(cfg, args)
     
-    elif args.option == "text2text":
-        for split in ["train", "test", "eval"]:
-            data = Text2TextDataset(cfg, split, tgt_dict, tgt_dict, args)
-            data.write2file(cfg, args)
+
+    def token_config_name(setting, args, cfg):
+        string = []
+        for key, val in setting.items():
+            if key == "lang":
+                continue
+            if val:
+                string.append(key)
+        return "_".join(string)
+
+    token_style = token_config_name(setting, args, cfg)
+    save_data_subdir = os.path.join(save_data_dir, cfg.dataset, setting.lang, args.option, token_style)
+    if not os.path.exists(save_data_subdir):
+        os.makedirs(save_data_subdir)
+    
+    for split in ["test", "train", "valid"]:
+        data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args)
+        save_data_file = os.path.join(save_data_subdir, split)
+        if cfg.dataset == "kgtext_wikidata":
+            data.write2file2(setting, save_data_file)
+        else:
+            data.write2file(setting, save_data_file)
+

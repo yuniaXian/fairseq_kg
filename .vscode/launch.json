@@ -19,8 +19,35 @@
         "--add_bos", "",
         "--config_file", "triples_dataset.yaml",
         "--setting_file", "token_setting.yaml",
-        "--data_dir", "/home/ubuntu/efs-storage/data-bin",
+        "--load_data_dir", "/home/ubuntu/efs-storage/data-bin/dataset",
+        "--save_data_dir", "/home/ubuntu/efs-storage/data-bin/dataset_denoising",
         "--efs", "/home/ubuntu/efs-storage"
+      ],
+      "env": {"PYTHONPATH": "${workspaceRoot}"},
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "name": "Python: clouddesk: create_dataset.py",
+      "type": "python",
+      "request": "launch",
+      "program": "./Kg2text/code/create_dataset.py",
+      "console": "integratedTerminal",
+      "args":[
+        "--option", "kg2kg",
+        "--seperate", "",
+        "--text_only", "",
+        "--simple", "",
+        "--tokenized", "True",
+        "--tagged", "True", 
+        "--dataset", "kgtext_wikidata",
+        "--add_eos", "",
+        "--add_bos", "",
+        "--lang", "en_XX",
+        "--config_file", "triples_dataset.yaml",
+        "--setting_file", "token_setting.yaml",
+        "--load_data_dir", "/home/xianjiay/efs-storage/data-bin/dataset",
+        "--save_data_dir", "/home/xianjiay/efs-storage/data-bin/dataset_denoising",
+        "--efs", "/home/xianjiay/efs-storage"
       ],
       "env": {"PYTHONPATH": "${workspaceRoot}"},
       "envFile": "${workspaceFolder}/.env"

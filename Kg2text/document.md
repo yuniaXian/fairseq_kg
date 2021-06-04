@@ -62,6 +62,39 @@ data-bin:
             zh_CN
             ...
 ```
+data-bin:
+    dataset:
+        webnlg:
+            train.json
+    dataset_denoising
+        webnlg:
+            en_XX
+                kg2kg:
+                    eval
+                    train
+                    test
+                    "--train-subset",
+                    "train.txt",
+                    "--valid-subset",
+                    "eval.txt",
+                text2text:
+                    eval
+                    train
+                    test
+                    "--train-subset",
+                    "train.txt",
+                    "--valid-subset",
+                    "eval.txt"
+                kg2text:
+                    eval
+                    train
+                    test
+                    "--train-subset",
+                    "train.txt",
+                    "--valid-subset",
+                    "eval.txt
+            zh_CN
+        ...
 
 
 

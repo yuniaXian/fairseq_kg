@@ -5,3 +5,4 @@ tagged: False
 tokenized: False
 add_bos: False
 add_eos: False
+lang: "en_XX"
