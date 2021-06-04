@@ -2,16 +2,26 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: draft_kg2text_dataset",
+            "type": "python",
+            "request": "launch",
+            "program": "fairseq/data/draft_kg2text_dataset.py",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Python: fairseq_generate_test_debug",
             "type": "python",
             "request": "launch",
             "program": "~/efs-storage/workspaces/hoverboard/fairseq/fairseq_cli/generate.py",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "args":[
+            "args": [
                 "~/efs-storage/data-bin/iwslt14.tokenized.de-en",
-                "--path", "~/efs-storage/checkpoints/wmt14.en-fr.fconv-py/checkpoint_best.pt",
-                "--beam", "5", "--remove-bpe"
+                "--path",
+                "~/efs-storage/checkpoints/wmt14.en-fr.fconv-py/checkpoint_best.pt",
+                "--beam",
+                "5",
+                "--remove-bpe"
             ]
         },
         {

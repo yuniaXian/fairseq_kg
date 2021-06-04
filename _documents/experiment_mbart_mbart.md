@@ -3,16 +3,22 @@
     + aligned tokenizers in both sides (encoder and decoder)
         + bpe model: sentencepiece
         + dictionary: mbart50 dictionary with added tags:
-            
 
-
-# mbart25/50 without special tokens:
-
-
-
+# mbart25/50 with lang tags + without special tokens:
+done
 # mbart25/50 raw text:
+?
+# tansformer #6 768 / #6 512 #6 1024
 
-# bart finetune 768 
+# data without lang tags + tags /notags
+
+# 
+
+# implement copygate
+# implement kgpt embedding:
+
+# bart finetune 768
+
 
 # denoising task:
     + special tokens:
