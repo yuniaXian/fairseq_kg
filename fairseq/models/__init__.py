@@ -197,6 +197,7 @@ def register_model_architecture(model_name, arch_name):
 
 # automatically import any Python files in the models/ directory
 models_dir = os.path.dirname(__file__)
+
 for file in os.listdir(models_dir):
     path = os.path.join(models_dir, file)
     if (

@@ -32,40 +32,7 @@ task:
   dataset: test # 可以不要
   encoder_type: kgpt
   decoder_type: kgpt
-  test:
-    dataset: webnlg
-    split: test
-    fairseq_gpt2:
-      gpt2_encoder_json: encoder.json
-      gpt2_vocab_bpe: vocab.bpe
-    sentenpiece:
-      sentencepiece_model: sentence.bpe.model
-    kgpt_gpt2:
-      tokenizer_dir: GPT2_tokenizer
-    option: eval
-    tokenizer_src: kgpt_gpt2
-    tokenizer_tgt: kgpt_gpt2
-    vocab_file_src: "dict.gpt2.txt"
-    vocab_file_tgt: "dict.gpt2.txt"
-    src_lang: "en_XX"
-    tgt_lang: "en_XX"
-    tgt_lang_tag_template: "[{}]"
-    src_lang_tag_template: "[{}]"
-    prepend_src_lang_tag: False
-    prepend_tgt_lang_tag: False
-    src_wtags: True
-    tgt_wtags: True
-    num_workers: 0
-    batch_size: 16
-    train_file: train.json
-    test_file: test.json
-    eval_file: eval.json
-    percent: 1.0
-    encoder_arch: sequence
-    src_length: 256
-    tgt_length: 72
-    max_fact: 8
-    max_entity: 12
+
 
 
 tokenizer:

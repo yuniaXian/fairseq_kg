@@ -11,33 +11,6 @@ import torch
 from . import FairseqDataset, data_utils
 
 
-def get_triple_embedding(source):
-    # find triple token
-    ent_starts = source.index(self.ent)
-    ent_ends = [source[s:].index(self.triple) for s in ent_starts]
-    assert len(ent_starts) == len(ent_ends)
-    ent_starts_ends = [[ent_starts[i], ent_ends[i]] for i in range(len(ent_starts))]
-    # debug TOOD
-    ent_to_data_index = np.stack(
-    [
-        np.arange(len(ent_starts)),  # starting index in dataset
-        np.array(ent_starts_ends, dtype=np.compat.long),  # starting offset within starting index
-    ],
-    1, )
-    ent_lst = ent_to_data_index[0]
-
-    pass
-
-def get_entity_embedding():
-    pass
-
-def get_kgpt_enbedding():
-    pass
-
-def get_property_embedding():
-    pass
-
-
 
 
 def collate(
@@ -236,10 +209,7 @@ class DenoisingDataset(FairseqDataset):
             # ent part: between [ENT] and [TRIPLE]
             # sub part: between [SUB] and [TRIPLE]
             # pred part: between [PRED] and [SUB]
-            def get_triples_indices(source):
-                triple_starts = source.index(self.triple)
-                triple_ends = [source[s:].index(self.triple) for s in triple_starts]
-                
+             
 
             def add_whole_ent_mask(source, p):
                 # determine where is ent part
@@ -266,13 +236,14 @@ class DenoisingDataset(FairseqDataset):
                 # entities to be masked
 
             
-            def add_whole_pred_mask(source, self.mask_ent_ratio):
+            def add_whole_propery_mask(self, source, p, mask_tags=False):
+                # mask one class of property with ratio p
                 pass
 
-            def add_whole_sub_mask(source, self.mask_ent_ratio):
+            def add_tag_mask_only(self, source, p, tag):
                 pass
             
-            def hybri():
+            def ratio_partition(self):
                 pass
             
             if self.mask_ent_ratio > 0:

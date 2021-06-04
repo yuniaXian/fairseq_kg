@@ -73,7 +73,7 @@ def collate(
     # sort by descending source length
     src_lengths = torch.LongTensor(
         [s["source"].ne(pad_idx).long().sum() for s in samples]
-    )
+    ) # TODO different from denoising
     src_lengths, sort_order = src_lengths.sort(descending=True)
     id = id.index_select(0, sort_order)
     src_tokens = src_tokens.index_select(0, sort_order)

@@ -1,0 +1,7 @@
+seperate: False
+text_only: False
+simple: False
+tagged: False
+tokenized: False
+add_bos: False
+add_eos: False

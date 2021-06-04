@@ -1,5 +1,7 @@
 # generate
 
+python setup.py install develop
+
 ## task required:
     + task = tasks.setup_task(cfg.task)
     + checkpoint_utils.load_model_ensemble
