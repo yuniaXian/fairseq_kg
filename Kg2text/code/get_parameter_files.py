@@ -77,48 +77,31 @@ def args_to_sh(file_name, args):
         f.close()
 
 
-KG2TEXT = "/home/xianjiay/efs-storage/fairseq/Kg2text"
-EXPERIMENT = "/home/xianjiay/efs-storage/fairseq/Kg2text/experiment"
+KG2TEXT = "/home/xianjiay/efs-storage/workspaces/hoverboard/fairseq/Kg2text"
+EXPERIMENT = "//home/xianjiay/efs-storage/workspaces/hoverboard/fairseq/Kg2text/experiment"
 if __name__ == '__main__':
     #yaml_to_sh("./code/data_parameters_from_yaml.sh")
     args=[
-                "Kg2text/data-bin/webnlg/sentencepiece_bped_data",
-                "--encoder-normalize-before", "--decoder-normalize-before",
-                "--arch", "mbart_large", "--task", "multilingual_denoising",
-                "--criterion", "label_smoothed_cross_entropy", "--label-smoothing", "0.2",
-                "--dataset-impl", "raw", "--optimizer", "adam", "--adam-eps", "1e-06", "--adam-betas", "(0.9, 0.98)",
-                "--lr-scheduler", "polynomial_decay", "--lr", "3e-05", "--stop-min-lr", "-1",
-                "--warmup-updates", "2500", "--max-update", "40000", "--total-num-update", "40000",
-                "--dropout", "0.3", "--attention-dropout", "0.1",
-                "--weight-decay", "0.0", "--max-tokens", "1024", "--update-freq", "2", "--save-interval", "1",
-                "--save-interval-updates", "8000", "--keep-interval-updates", "10", "--no-epoch-checkpoints",
-                "--seed", "222", "--log-format", "simple", "--log-interval", "2",
-                "--reset-optimizer", "--reset-meters", "--reset-dataloader", "--reset-lr-scheduler",
-                "--save-dir", "checkpoint/denoising_webnlg",
-                "--layernorm-embedding", "--ddp-backend", "no_c10d",
-                "--langs", "en_XX",
-                "--no-whole-word-mask-langs", "False",
-                "--tokens-per-sample", "512",
-                "--sample-break-mode", "eos",
-                "--mask", "0.5",
-                "--mask-random", "0.0",
-                "--insert", "0.0",
-                "--permute", "0.0",
-                "--rotate", "0.5",
-                "--poisson-lambda", "3.0",
-                "--permute-sentences", "0.0",
-                "--mask-length", "word",
-                "--replace-length", "-1",
-                "--shorten-method", "none",
-                "--bpe", "sentencepiece",
-                "--sentencepiece-model", "Kg2text/tokenizer/mbart50/bpe/sentence.bpe.model",
-                "--train-subset", "train.input",
-                "--valid-subset", "eval.input"
-            ]
+        "--option", "kg2kg",
+        "--seperate", "",
+        "--text_only", "",
+        "--simple", "",
+        "--tokenized", "True",
+        "--tagged", "True", 
+        "--dataset", "kgtext_wikidata",
+        "--add_eos", "",
+        "--add_bos", "",
+        "--lang", "en_XX",
+        "--config_file", "triples_dataset.yaml",
+        "--setting_file", "token_setting.yaml",
+        "--load_data_dir", "/home/xianjiay/efs-storage/data-bin/dataset",
+        "--save_data_dir", "/home/xianjiay/efs-storage/data-bin/dataset_denoising",
+        "--efs", "/home/xianjiay/efs-storage"
+      ]
 
 
-    #args_to_sh("./Kg2text/code/denoising_task.sh", args)
-    sh_to_args(EXPERIMENT + "/translation_task_args_from_sh.sh", EXPERIMENT+"/translation_task_args_from_sh.txt")
+    args_to_sh("./Kg2text/code/create_dataset_kg_text_wikidata.sh", args)
+    #sh_to_args(EXPERIMENT + "/translation_task_args_from_sh.sh", EXPERIMENT+"/translation_task_args_from_sh.txt")
     
     
 

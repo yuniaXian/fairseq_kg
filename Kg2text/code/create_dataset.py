@@ -283,11 +283,11 @@ class Kg2KgDataset(Dataset):
                     # ["Sweet potato", "main  ingredients", "Binignit"]
                     
                     if text_only:
-                        triple_part += self.triple_text_only_format.format(pred, sub)
+                        triple_part += self.triple_text_only_format.format(pred, sub) + " "
                     elif simple:
-                        triple_part += self.triple_simple_format.format(pred, sub)
+                        triple_part += self.triple_simple_format.format(pred, sub) + " "
                     elif tagged:
-                        triple_part += self.triple_unseperate_tagged_format.format(pred, sub)
+                        triple_part += self.triple_unseperate_tagged_format.format(pred, sub) + " "
                     else:
                         raise NotImplementedError
 
@@ -331,55 +331,13 @@ class Kg2KgDataset(Dataset):
             return triple_part
 
 
-    def linearize_bpe(self, entity, lang=None, lower_case=False ):
-        if lower_case:
-            entity0, entity1 = entity[0].lower(), entity[1].lower()
-        else:
-            entity0, entity1 = entity[0], entity[1]
-
-        entity0, entity1 = self.src_bpe.encode(entity0), self.src_bpe.encode(entity1)
-        """
-        if self.prepend_src_lang_tag:
-            entity_tagged = self.lang_tagging(entity0)
-        """
-
-        entity_tagged = self.entity_format.format(entity0)
-        # TODO description
-        des_tagged = self.des_format.format(entity1)
-
-        #entity_tokenized = self.src_dict.encode_line(entity_tagged, add_if_not_exist=False, append_eos=False)
-        #des_tokenized = self.src_dict.encode_line(des_tagged, add_if_not_exist=False, append_eos=False)
-        string = entity_tagged + " " + des_tagged
-
-        added = set()
-        for rel in entity[2]:
-            if self.forbid_duplicate_relation and rel[0] in added:
-                pass
-            else:
-                if lower_case:
-                    rel0, rel1 = rel[0].lower(), rel[1].lower()
-                else:
-                    rel0, rel1 = rel[0], rel[1]
-                rel0, rel1 = self.src_bpe.encode(rel0), self.src_bpe.encode(rel1)
-
-                rel_tagged = self.rel_format.format(rel0, rel1)
-                #rel_tokenized = self.src_dict.encode_line(rel_tagged, add_if_not_exist=False, append_eos=False)
-                string += " " + rel_tagged
-                added.add(rel[0])
-
-            if len(added) >= self.max_fact:
-                break
-
-        return string
-
-
-    def sentence_preprocess_bpe(self, sentence, prepend_lang_tag, add_bos=True, add_eos=False, lower_case=False):
+    def format_sentence(self, sentence, prepend_lang_tag, add_bos=False, add_eos=False, lower_case=False):
         if lower_case:
             sentence =sentence.lower()
         sent_bped = self.tgt_bpe.encode(sentence)
         
 
-        if self.prepend_tgt_lang_tag:
+        if prepend_lang_tag:
             sent_format = self.lang_text_format
         else:
             sent_format = self.text_format
@@ -406,120 +364,115 @@ class Kg2KgDataset(Dataset):
     def __len__(self):
         return len(self.data)
 
-    def write2file(self, setting, file_name):
+    def write2file_non_wikidata(self, setting, file_name):
         L = len(self.data)
         
-        with open(file_name, "w") as f1:
-            #f1.write(x["text_bped"]+"\n"
+        if setting.option == "kg2kg":
+            with open(file_name, "w") as f1:
+                #f1.write(x["text_bped"]+"\n"
 
+                for idx in range(L):
+                    entry = self.data[idx]
+                    #sentence = random.choice(entry['text']) # TODO
+                    KBs = entry['kbs'] # set of triples
 
-            for idx in range(L):
-                entry = self.data[idx]
-                #sentence = random.choice(entry['text']) # TODO
-                KBs = entry['kbs'] # set of triples
+                    # for src_text
+                    if self.seperate == True:
+                        triples = []
 
-                # for src_text
-                if self.seperate == True:
-                    triples = []
+                        for i, entity_label in enumerate(KBs): # entity_label: "W1215"
+                            if i + 1 >= self.max_entity:
+                                break
 
-                    for i, entity_label in enumerate(KBs): # entity_label: "W1215"
-                        if i + 1 >= self.max_entity:
-                            break
+                            entity = KBs[entity_label] # ['Sweet potato', 'Sweet potato', [['main ingredients', 'Binignit']]]
+                            triple = self.format_triples(entity, setting)
+                            triples += triple # triple: list of triples, list of str
+                            f1.write(triple + "\n")
+                    else:
+                        triples = ""
 
-                        entity = KBs[entity_label] # ['Sweet potato', 'Sweet potato', [['main ingredients', 'Binignit']]]
-                        triple = self.format_triples(entity, setting)
-                        triples += triple # triple: list of triples, list of str
-                        f1.write(triple + "\n")
-                else:
-                    triples = ""
+                        for i, entity_label in enumerate(KBs): # entity_label: "W1215"
+                            if i + 1 >= self.max_entity:
+                                break
 
-                    for i, entity_label in enumerate(KBs): # entity_label: "W1215"
-                        if i + 1 >= self.max_entity:
-                            break
+                            entity = KBs[entity_label] # ['Sweet potato', 'Sweet potato', [['main ingredients', 'Binignit']]]
+                            triple = self.format_triples(entity, setting)
+                            triples += triple + " " # triple: list of triples, list of str
+                        triples.strip()
+                        f1.write(triples + "\n")
 
-                        entity = KBs[entity_label] # ['Sweet potato', 'Sweet potato', [['main ingredients', 'Binignit']]]
-                        triple = self.format_triples(entity, setting)
-                        triples += triple + " " # triple: list of triples, list of str
-                    f1.write(triples + "\n")
+            print("finished writing to file: %s", file_name)
+            f1.close()
+        
+        elif setting.option == "text2text":
+            with open(file_name, "w") as f1:
+                for i in range(L):
+                    entry = self.data[i]
 
+                    sentence = random.choice(entry['text'])
+                    sentence = self.format_sentence(sentence, prepend_lang_tag=setting.lang_tag)
+
+                    f1.write(sentence+"\n")
+            print("finished writing to file: %s", file_name)
             f1.close()
 
-    def write2file2(self, setting, file_name):
+        else:
+            raise NotImplementedError
+
+    def write2file_wikidata(self, setting, file_name):
         L = len(self.data)
         
-        with open(file_name, "w") as f1:
-            for i in range(L):
-                entry = self.data[i]
+        if setting.option == "kg2kg":
+            with open(file_name, "w") as f1:
+                for i in range(L):
+                    entry = self.data[i]
 
-                sentence = ' '.join(entry['text'])
-                entities = []
-                for _ in entry['kblinks']:
-                    if _ is not None and _ in self.knowledge and _ not in entities:
-                        entities.append(_)
+                    sentence = ' '.join(entry['text'])
+                    entities = []
+                    for _ in entry['kblinks']:
+                        if _ is not None and _ in self.knowledge and _ not in entities:
+                            entities.append(_)
+                    
+                    if self.seperate == True:
+                        pass
+                    else:
+                        if 'title' in entry:
+                            entity = self.knowledge[entry['title_kb_id']]
+                            triples = self.format_triples(entity, setting)
 
-                if self.src_enc_type == 'seq':
-                    strings = []
-                    entity_ids = []
-                    triple_ids = []
+                        for i, entity_id in enumerate(entities):
+                            if i + 1 >= self.max_entity:
+                                break
 
-                    if 'title' in entry:
-                        entity = self.knowledge[entry['title_kb_id']]
-                        string, triple_id = self.linearize(entity, self.lower_case)
+                            entity = self.knowledge[entity_id]
+                            triple = self.format_triples(entity, setting)
+                            triples += triple
+                            # string: all the knowledge(description, rels) tokenized vector
+                            # triple_id: indicate different triples in the string
+                        triples.strip()
+                        f1.write(triples + "\n")
+            print("finished writing to file: %s", file_name)
+            f1.close()
+        
+        elif setting.option == "text2text":
+            with open(file_name, "w") as f1:
+                for i in range(L):
+                    entry = self.data[i]
 
-                        strings += string
-                        entity_ids += [0] * len(string)
-                        triple_ids += triple_id
+                    sentence = ' '.join(entry['text'])
+                    f1.write(sentence+"\n")
+            print("finished writing to file: %s", file_name)
+            f1.close()
+        
+        elif setting.option == "kg2text":
 
-                    for i, entity_id in enumerate(entities):
-                        if i + 1 >= self.max_entity:
-                            break
-
-                        entity = self.knowledge[entity_id]
-                        string, triple_id = self.linearize(entity, self.lower_case)
-                        # string: all the knowledge(description, rels) tokenized vector
-                        # triple_id: indicate different triples in the string
-
-                        strings += string
-                        entity_ids += [i + 1] * len(string)
-                        triple_ids += triple_id
-
-                    position_ids = list(range(len(strings)))
-                    assert len(strings) == len(entity_ids) == len(triple_ids) == len(position_ids)
-
-                    input_ids, entity_ids, triple_ids, position_ids = self.entity_truncated(
-                        strings, entity_ids, triple_ids, position_ids)
-
-                    sent_tokenized = self.sentence_preprocess(sentence, self.prepend_tgt_lang_tag)
-                    output_ids = self.sentence_truncated(sent_tokenized)
-
-                    return input_ids, entity_ids, triple_ids, position_ids, output_ids[:-1], output_ids[1:]
-                
-                else:
-                    raise NotImplementedError
+            pass
 
     def __getitem__(self, idx):
         entry = self.data[idx]
         sentence = random.choice(entry['text']) # TODO
-        KBs = entry['kbs'] # set of triples
-
-        # for src_text
-        if self.seperate == True:
-            triples = []
-
-            for i, entity_label in enumerate(KBs): # entity_label: "W1215"
-                if i + 1 >= self.max_entity:
-                    break
-
-                entity = KBs[entity_label] # ['Sweet potato', 'Sweet potato', [['main ingredients', 'Binignit']]]
-                triple = self.format_triples(entity, seperate=self.seperate, tokenized=self.tokenized, text_only=self.text_only, \
-                    simple=self.simple, tagged=self.tagged, lower_case=False,skip_des=True, lang=None)
-                triples += triple # triple: list of triples, list of str
-            
-            return triples
-
-
-        else:
-            pass
+        
+        return entry, sentence
 
 
 
@@ -532,15 +485,17 @@ def get_dataset_args():
     parser.add_argument("--simple", type=bool, default=False, help="add seperating symbols between parts in a triple and between triples")
     parser.add_argument("--tagged", type=bool, default=True, help="add tags for triples and sentences")
     parser.add_argument("--tokenized", type=bool, default=True, help="apply bpe to words")
-    parser.add_argument("--add_eos", type=bool, default="", help="add eos or not")
-    parser.add_argument("--add_bos", type=bool, default="", help="add bos or not")
+    parser.add_argument("--add_eos", type=bool, default=False, help="add eos or not")
+    parser.add_argument("--add_bos", type=bool, default=False, help="add bos or not")
     parser.add_argument("--dataset", type=str, default="webnlg", help="specify dataset")
     parser.add_argument("--config_file", type=str, default="triples_dataset.yaml", help="specify config yaml file")
     parser.add_argument("--setting_file", type=str, default="token_setting.yaml", help="setting to create different types of datasets")
     parser.add_argument("--load_data_dir", type=str, default="", help="specify loading data from data dir")
     parser.add_argument("--save_data_dir", type=str, default="", help="specify saving data dir")
-    parser.add_argument("--lang", type=str, default="en_XX", help="lang tag")
+    parser.add_argument("--lang", type=str, default="en_XX", help="specify lang tag")
+    parser.add_argument("--lang_tag", type=bool, default=False, help="add lang tag or not")
     parser.add_argument("--efs", type=str, default="", help="dir of efs")
+
     
     args = parser.parse_args()
 
@@ -568,6 +523,7 @@ def get_abs_project_path(project_name="Kg2text", project_path=None):
 
 def update_cfg(cfg, args):
     cfg.dataset = args.dataset
+    cfg.option = args.option
     cfg.project_dir = get_abs_project_path()
     cfg.efs = args.efs
     load_data_dir = args.load_data_dir
@@ -608,22 +564,42 @@ if __name__ == "__main__":
     def token_config_name(setting, args, cfg):
         string = []
         for key, val in setting.items():
-            if key == "lang":
-                continue
-            if val:
+            if key in ["seperate", "text_only", "simple", "tagged", "tokenized"] and val:
                 string.append(key)
         return "_".join(string)
 
     token_style = token_config_name(setting, args, cfg)
-    save_data_subdir = os.path.join(save_data_dir, cfg.dataset, setting.lang, args.option, token_style)
+    save_data_subdir = os.path.join(save_data_dir, cfg.dataset, setting.lang, setting.option, token_style)
     if not os.path.exists(save_data_subdir):
         os.makedirs(save_data_subdir)
     
-    for split in ["test", "train", "valid"]:
-        data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args)
-        save_data_file = os.path.join(save_data_subdir, split)
-        if cfg.dataset == "kgtext_wikidata":
-            data.write2file2(setting, save_data_file)
-        else:
-            data.write2file(setting, save_data_file)
 
+    if setting.option != "kg2text":
+        for split in ["test", "train", "valid"]:
+            data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args)
+            save_data_file = os.path.join(save_data_subdir, split)
+            print(save_data_file)
+            if cfg.dataset == "kgtext_wikidata":
+                data.write2file_wikidata(setting, save_data_file)
+            else:
+                data.write2file_non_wikidata(setting, save_data_file)
+
+    elif setting.option == "kg2text":
+        for split in ["test", "train", "valid"]:
+            data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args)
+            save_data_file = os.path.join(save_data_subdir, split)
+            
+            save_input_file = save_data_file + ".input"
+            save_label_file = save_data_file + ".label"
+            print(save_data_file, save_input_file, save_label_file)
+        
+            if cfg.dataset == "kgtext_wikidata":
+                setting.option = "kg2kg"
+                data.write2file_wikidata(setting, save_input_file)
+                setting.option = "text2text"
+                data.write2file_wikidata(setting, save_label_file)
+            else:
+                setting.option = "kg2kg"
+                data.write2file_non_wikidata(setting, save_input_file)
+                setting.option = "text2text"
+                data.write2file_non_wikidata(setting, save_label_file)

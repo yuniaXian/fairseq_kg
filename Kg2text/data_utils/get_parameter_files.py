@@ -44,90 +44,25 @@ def args_to_sh(file_name, args):
         f.close()
 
 args = [
-                "--data",
-                "test",
-                "--option",
-                "train",
-                "--split",
-                "train",
-                "--encoder_type",
-                "kgpt",
-                "--decoder_type",
-                "mbart50_wtags",
-                "--tokenizer_src",
-                "kgpt_gpt2",
-                "--tokenizer_tgt",
-                "sentencepiece",
-                "--vocab_file_src",
-                "dict.gpt2.txt",
-                "--vocab_file_tgt",
-                "dict.mbart50_wtags.txt",
-                "--experiment_comment",
-                "kgpt_mbart50_added_tags_tgt_lang_copy_gate",
-                "--pretrained_encoder_file",
-                "kgpt_mbart50_encoder.pt",
-                "--pretrained_decoder_file",
-                "mbart50_mbart50_decoder_wtags.pt",
-                "--prepend_src_lang_tag",
-                "False",
-                "--prepend_tgt_lang_tag",
-                "True",
-                "--src_length",
-                "256",
-                "--tgt_length",
-                "108",
-                "--seed",
-                "0"
-            ]
-
+        "--option", "kg2kg",
+        "--seperate", "",
+        "--text_only", "",
+        "--simple", "",
+        "--tokenized", "True",
+        "--tagged", "True", 
+        "--dataset", "webnlg",
+        "--add_eos", "",
+        "--add_bos", "",
+        "--config_file", "triples_dataset.yaml",
+        "--setting_file", "token_setting.yaml",
+        "--load_data_dir", "/home/ubuntu/efs-storage/data-bin/dataset",
+        "--save_data_dir", "/home/ubuntu/efs-storage/data-bin/dataset_denoising",
+        "--efs", "/home/ubuntu/efs-storage"
+      ]
 
 
 
 if __name__ == '__main__':
-    yaml_to_sh("./code/data_parameters_from_yaml.sh")
-    #args_to_sh("./code/data_parameters_from_json.sh", args)
+    #yaml_to_sh("./code/data_parameters_from_yaml.sh")
+    args_to_sh("./code/data_parameters_from_json.sh", args)
     
-    
-
-
-    
-
-
-
-args = [
-                "--data",
-                "test",
-                "--option",
-                "train",
-                "--split",
-                "train",
-                "--encoder_type",
-                "kgpt",
-                "--decoder_type",
-                "mbart50_wtags",
-                "--tokenizer_src",
-                "kgpt_gpt2",
-                "--tokenizer_tgt",
-                "sentencepiece",
-                "--vocab_file_src",
-                "dict.gpt2.txt",
-                "--vocab_file_tgt",
-                "dict.mbart50_wtags.txt",
-                "--experiment_comment",
-                "kgpt_mbart50_added_tags_tgt_lang_copy_gate",
-                "--pretrained_encoder_file",
-                "kgpt_mbart50_encoder.pt",
-                "--pretrained_decoder_file",
-                "mbart50_mbart50_decoder_wtags.pt",
-                "--prepend_src_lang_tag",
-                "False",
-                "--prepend_tgt_lang_tag",
-                "True",
-                "--src_length",
-                "256",
-                "--tgt_length",
-                "108",
-                "--seed",
-                "0"
-            ]
-

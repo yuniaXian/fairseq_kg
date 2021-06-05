@@ -3,9 +3,9 @@ split: test
 project_dir: ""
 sentencepiece:
   sentencepiece_model: sentence.bpe.model
-option: valid
-tokenizer_src: sentenpiece
-tokenizer_tgt: sentenpiece
+option: kg2kg
+tokenizer_src: sentencepiece
+tokenizer_tgt: sentencepiece
 vocab_file_src: "dict.mbart50_wtags.txt"
 vocab_file_tgt: "dict.mbart50_wtags.txt"
 src_lang: "en_XX"
