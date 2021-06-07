@@ -105,26 +105,19 @@ class Kg2KgDatasetConfig(FairseqDataclass):
     #    metadata={"help": "if set, shuffle dataset samples before batching"},
     #)
 
-class Kg2TextDataset(Dataset):
-    def __init__(self, ):
-        pass
-
-class Text2TextDataset(Dataset):
-    def __init__(self, ):
-        pass
-
-
 class Kg2KgDataset(Dataset):
-    def __init__(self,cfg, split, src_dict, tgt_dict, args):
+    def __init__(self,cfg, split, src_dict, tgt_dict, args, setting):
         super(Kg2KgDataset, self).__init__()
 
         #cfg = cfg.cfg
         #assert isinstance(cfg, Kg2KgDatasetConfig)
-        ent = "[ENT]"
-        pred = "[PRED]"
-        sub = "[SUB]"
-        triple = "[TRIPLE]"
-        self.tags = [ent, pred, sub, triple]
+        ent, pred, sub, triple, kg, text, sep = setting.tags.ent, setting.tags.pred, setting.tags.sub, setting.tags.triple, \
+            setting.tags.kg, setting.tags.text, setting.tags.sep
+
+        
+        self.tags = dict()
+        for key, val in setting.tags.items():
+            self.tags[key] = val
         self.src_dict = src_dict
         self.tgt_dict = tgt_dict
         self.src_bpe = SentencepieceBPE(cfg.sentencepiece)
@@ -364,6 +357,22 @@ class Kg2KgDataset(Dataset):
     def __len__(self):
         return len(self.data)
 
+
+    def tag_post_process(self, sample, setting, label):
+        if setting.add_kg_tag and label == "kg":
+            sample = self.tags["kg"] + " " + sample
+        if setting.add_text_tag and label == "text":
+            sample = self.tags["text"] + " " + sample
+        if setting.add_lang_tag:
+            sample = self.src_lang_tag + " " + sample
+        if setting.add_eos:
+            sample = sample + " " + self.src_dict.eos_word
+        if setting.add_eos:
+            sample = sample + " " + self.src_dict.eos_word
+        
+        return sample
+
+
     def write2file_non_wikidata(self, setting, file_name):
         L = len(self.data)
         
@@ -387,6 +396,7 @@ class Kg2KgDataset(Dataset):
                             entity = KBs[entity_label] # ['Sweet potato', 'Sweet potato', [['main ingredients', 'Binignit']]]
                             triple = self.format_triples(entity, setting)
                             triples += triple # triple: list of triples, list of str
+                            triple = self.tag_post_process(triple, setting, "kg")
                             f1.write(triple + "\n")
                     else:
                         triples = ""
@@ -399,6 +409,7 @@ class Kg2KgDataset(Dataset):
                             triple = self.format_triples(entity, setting)
                             triples += triple + " " # triple: list of triples, list of str
                         triples.strip()
+                        triples = self.tag_post_process(triples, setting, "kg")
                         f1.write(triples + "\n")
 
             print("finished writing to file: %s", file_name)
@@ -410,7 +421,9 @@ class Kg2KgDataset(Dataset):
                     entry = self.data[i]
 
                     sentence = random.choice(entry['text'])
-                    sentence = self.format_sentence(sentence, prepend_lang_tag=setting.lang_tag)
+                    sentence = self.format_sentence(sentence, prepend_lang_tag=setting.add_lang_tag)
+
+                    sentence = self.tag_post_process(sentence, setting, "text")
 
                     f1.write(sentence+"\n")
             print("finished writing to file: %s", file_name)
@@ -434,7 +447,24 @@ class Kg2KgDataset(Dataset):
                             entities.append(_)
                     
                     if self.seperate == True:
-                        pass
+                        if 'title' in entry:
+                            entity = self.knowledge[entry['title_kb_id']]
+                            triples = self.format_triples(entity, setting)
+                            triples.strip()
+                            triples = self.tag_post_process(triples, setting, "kg")
+                            f1.write(triples + "\n")
+                        for i, entity_id in enumerate(entities):
+                            if i + 1 >= self.max_entity:
+                                break
+
+                            entity = self.knowledge[entity_id]
+                            triple = self.format_triples(entity, setting)
+                            triples += triple
+                            # string: all the knowledge(description, rels) tokenized vector
+                            # triple_id: indicate different triples in the string
+                            triple.strip()
+                            triple = self.tag_post_process(triple, setting, "kg")
+                            f1.write(triple + "\n")
                     else:
                         if 'title' in entry:
                             entity = self.knowledge[entry['title_kb_id']]
@@ -450,6 +480,7 @@ class Kg2KgDataset(Dataset):
                             # string: all the knowledge(description, rels) tokenized vector
                             # triple_id: indicate different triples in the string
                         triples.strip()
+                        triples = self.tag_post_process(triples, setting, "kg")
                         f1.write(triples + "\n")
             print("finished writing to file: %s", file_name)
             f1.close()
@@ -460,6 +491,8 @@ class Kg2KgDataset(Dataset):
                     entry = self.data[i]
 
                     sentence = ' '.join(entry['text'])
+                    sentence = self.format_sentence(sentence, prepend_lang_tag=setting.add_lang_tag)
+                    sentence = self.tag_post_process(sentence, setting, "text")
                     f1.write(sentence+"\n")
             print("finished writing to file: %s", file_name)
             f1.close()
@@ -487,13 +520,15 @@ def get_dataset_args():
     parser.add_argument("--tokenized", type=bool, default=True, help="apply bpe to words")
     parser.add_argument("--add_eos", type=bool, default=False, help="add eos or not")
     parser.add_argument("--add_bos", type=bool, default=False, help="add bos or not")
+    parser.add_argument("--add_kg_tag", type=bool, default=False, help="add kg tag or not")
+    parser.add_argument("--add_text_tag", type=bool, default=False, help="add text tag or not")
+    parser.add_argument("--add_lang_tag", type=bool, default=False, help="add lang tag or not")
     parser.add_argument("--dataset", type=str, default="webnlg", help="specify dataset")
     parser.add_argument("--config_file", type=str, default="triples_dataset.yaml", help="specify config yaml file")
     parser.add_argument("--setting_file", type=str, default="token_setting.yaml", help="setting to create different types of datasets")
     parser.add_argument("--load_data_dir", type=str, default="", help="specify loading data from data dir")
     parser.add_argument("--save_data_dir", type=str, default="", help="specify saving data dir")
     parser.add_argument("--lang", type=str, default="en_XX", help="specify lang tag")
-    parser.add_argument("--lang_tag", type=bool, default=False, help="add lang tag or not")
     parser.add_argument("--efs", type=str, default="", help="dir of efs")
 
     
@@ -576,7 +611,7 @@ if __name__ == "__main__":
 
     if setting.option != "kg2text":
         for split in ["test", "train", "valid"]:
-            data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args)
+            data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args, setting)
             save_data_file = os.path.join(save_data_subdir, split)
             print(save_data_file)
             if cfg.dataset == "kgtext_wikidata":
@@ -586,7 +621,7 @@ if __name__ == "__main__":
 
     elif setting.option == "kg2text":
         for split in ["test", "train", "valid"]:
-            data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args)
+            data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args, setting)
             save_data_file = os.path.join(save_data_subdir, split)
             
             save_input_file = save_data_file + ".input"

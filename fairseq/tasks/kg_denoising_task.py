@@ -18,7 +18,7 @@ from fairseq.data import (
     TokenBlockDataset,
     data_utils,
 )
-from fairseq.data.encoders.utils import get_whole_word_mask
+from fairseq.data.encoders.utils import get_whole_word_mask1
 from fairseq.tasks import register_task
 
 from .denoising import DenoisingTask
@@ -107,6 +107,7 @@ class KgMultilingualDenoisingTask(DenoisingTask):
         paths = self.args.data.split(":")
         assert len(paths) > 0
         data_path = paths[(epoch - 1) % len(paths)]
+        # /local/home/xianjiay/efs-storage/data-bin/dataset_denoising/webnlg
         split_path = os.path.join(data_path, split)
 
         if self.langs is None:
@@ -120,7 +121,7 @@ class KgMultilingualDenoisingTask(DenoisingTask):
         else:
             languages = self.langs.split(",")
             for name in languages:
-                p = os.path.join(data_path, name) # for example 'Kg2text/data-bin/webnlg/sentencepiece_bped_data/en_XX'
+                p = os.path.join(data_path, name) # for example '/local/home/xianjiay/efs-storage/data-bin/dataset_denoising/webnlg/en_XX'
                 assert os.path.exists(p), "data not found: {}".format(p)
 
         logger.info("Training on {0} languages: {1}".format(len(languages), languages))
@@ -128,89 +129,81 @@ class KgMultilingualDenoisingTask(DenoisingTask):
             "Language to id mapping: ", {lang: id for id, lang in enumerate(languages)}
         )
 
-        mask_whole_words = get_whole_word_mask(self.args, self.dictionary)
+        mask_whole_words = get_whole_word_mask1(self.args, self.dictionary)
         language_without_segmentations = self.args.no_whole_word_mask_langs.split(",")
         lang_datasets = []
         for language in languages:
-            subdatasets = sorted( # get all the dirs folders under data_path
-                [
-                    name
-                    for name in os.listdir(os.path.join(data_path, language))
-                    if os.path.isdir(os.path.join(data_path, language, name))
-                ]
+            split_path = os.path.join(data_path, language, split)
+
+            dataset = data_utils.load_indexed_dataset( # if impl is raw, it will add eos, so remove eos of bped dataset
+                split_path,
+                self.source_dictionary,
+                self.args.dataset_impl,
+                combine=True, # TODO change
             )
-            for name in subdatasets:
-                split_path = os.path.join(data_path, language, name, split)
-
-                dataset = data_utils.load_indexed_dataset( # if impl is raw, it will add eos, so remove eos of bped dataset
-                    split_path,
-                    self.source_dictionary,
-                    self.args.dataset_impl,
-                    combine=combine,
+            if dataset is None:
+                raise FileNotFoundError(
+                    "Dataset not found: {} ({})".format(split, split_path)
                 )
-                if dataset is None:
-                    raise FileNotFoundError(
-                        "Dataset not found: {} ({})".format(split, split_path)
-                    )
 
-                end_token = (
-                    self.source_dictionary.eos()
-                )
+            end_token = (
+                self.source_dictionary.eos()
+            )
 
                 # create continuous blocks of tokens
-                dataset = TokenBlockDataset(
-                    dataset,
-                    dataset.sizes,
-                    self.args.tokens_per_sample - 2,  # one less for <s>
-                    pad=self.source_dictionary.pad(), # pad index
-                    eos=end_token, # eos index
-                    break_mode=self.args.sample_break_mode, #?? TODO: check
-                )
-                logger.info("loaded {} blocks from: {}".format(len(dataset), split_path))
-
-                dataset = PrependTokenDataset(dataset, self.source_dictionary.index("[{}]".format(language)))
-
-                # prepend beginning-of-sentence token (<s>, equiv. to [CLS] in BERT)
-                if name == "KG":
-                    dataset = PrependTokenDataset(dataset, self.source_dictionary.index("[KG]"))
-                elif name == "TEXT":
-                    dataset = PrependTokenDataset(dataset, self.source_dictionary.index("[TEXT]"))
-                elif name == "None":
-                    pass
-                else:
-                    dataset = PrependTokenDataset(dataset, self.source_dictionary.bos())
-
-                #dataset = AppendTokenDataset(dataset, end_token)
-
-                lang_mask_whole_words = (
-                    mask_whole_words
-                    if language not in language_without_segmentations
-                    else None
-                )
-                lang_dataset = DenoisingDataset(
-                    dataset,
-                    dataset.sizes,
-                    self.dictionary,
-                    self.mask_idx,
-                    lang_mask_whole_words,
-                    shuffle=self.args.shuffle_instance,
-                    seed=self.seed,
-                    args=self.args,
-                    eos=None
-                    if not self.args.add_lang_token
-                    else self.source_dictionary.index("[{}]".format(language)),
-                )
-                lang_datasets.append(lang_dataset)
-
-            dataset_lengths = np.array(
-                [len(d) for d in lang_datasets],
-                dtype=float,
+            dataset = TokenBlockDataset(
+                dataset,
+                dataset.sizes,
+                self.args.tokens_per_sample - 2,  # one less for <s>
+                pad=self.source_dictionary.pad(), # pad index
+                eos=end_token, # eos index
+                break_mode=self.args.sample_break_mode, #?? TODO: check
             )
-            logger.info(
-                "loaded total {} blocks for all languages".format(
-                    int(dataset_lengths.sum()),
-                )
+            logger.info("loaded {} blocks from: {}".format(len(dataset), split_path))
+
+
+            # prepend beginning-of-sentence token (<s>, equiv. to [CLS] in BERT)
+            if name == "kg2kg":
+                dataset = PrependTokenDataset(dataset, self.source_dictionary.index("[KG]"))
+            elif name == "text2text":
+                dataset = PrependTokenDataset(dataset, self.source_dictionary.index("[TEXT]"))
+            elif name == "kg2text":
+                pass
+            else:
+                dataset = PrependTokenDataset(dataset, self.source_dictionary.bos())
+
+            dataset = PrependTokenDataset(dataset, self.source_dictionary.index("[{}]".format(language)))
+
+
+            #dataset = AppendTokenDataset(dataset, end_token)
+
+            lang_mask_whole_words = (
+                mask_whole_words
+                if language not in language_without_segmentations
+                else None
             )
+            lang_dataset = DenoisingDataset(
+                dataset,
+                dataset.sizes,
+                self.dictionary,
+                self.mask_idx,
+                lang_mask_whole_words,
+                shuffle=self.args.shuffle_instance,
+                seed=self.seed,
+                args=self.args,
+                eos=self.dictionary.eos()
+            )
+            lang_datasets.append(lang_dataset)
+
+        dataset_lengths = np.array(
+            [len(d) for d in lang_datasets],
+            dtype=float,
+        )
+        logger.info(
+            "loaded total {} blocks for all languages".format(
+                int(dataset_lengths.sum()),
+            )
+        )
         if split == self.args.train_subset:
             # For train subset, additionally up or down sample languages.
             sample_probs = self._get_sample_prob(dataset_lengths)

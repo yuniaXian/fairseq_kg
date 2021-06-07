@@ -5,6 +5,16 @@ tagged: False
 tokenized: False
 add_bos: False
 add_eos: False
+add_kg_tag: False
+add_text_tag: False
+add_lang_tag: False
 lang: "en_XX"
-lang_tag: False
 option: "kg2kg"
+tags:
+  ent: "[ENT]"
+  pred: "[PRED]"
+  sub: "[SUB]"
+  triple: "[TRIPLE]"
+  kg: "[KG]"
+  text: "[TEXT]"
+  sep: "[SEP]"

@@ -28,7 +28,7 @@ class ConcatDataset(FairseqDataset):
         if isinstance(sample_ratios, int):
             sample_ratios = [sample_ratios] * len(self.datasets)
         self.sample_ratios = sample_ratios
-        self.cumulative_sizes = self.cumsum(self.datasets, sample_ratios)
+        self.cumulative_sizes = self.cumsum(self.datasets, sample_ratios) # 1619, 1619 -> [1619, 3238]
         self.real_sizes = [len(d) for d in self.datasets]
 
     def __len__(self):
