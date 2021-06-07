@@ -150,7 +150,7 @@ class KgMultilingualDenoisingTask(DenoisingTask):
                 self.source_dictionary.eos()
             )
 
-                # create continuous blocks of tokens
+            # create continuous blocks of tokens
             dataset = TokenBlockDataset(
                 dataset,
                 dataset.sizes,
@@ -163,6 +163,7 @@ class KgMultilingualDenoisingTask(DenoisingTask):
 
 
             # prepend beginning-of-sentence token (<s>, equiv. to [CLS] in BERT)
+            """
             if name == "kg2kg":
                 dataset = PrependTokenDataset(dataset, self.source_dictionary.index("[KG]"))
             elif name == "text2text":
@@ -173,7 +174,7 @@ class KgMultilingualDenoisingTask(DenoisingTask):
                 dataset = PrependTokenDataset(dataset, self.source_dictionary.bos())
 
             dataset = PrependTokenDataset(dataset, self.source_dictionary.index("[{}]".format(language)))
-
+            """
 
             #dataset = AppendTokenDataset(dataset, end_token)
 
@@ -194,6 +195,9 @@ class KgMultilingualDenoisingTask(DenoisingTask):
                 eos=self.dictionary.eos()
             )
             lang_datasets.append(lang_dataset)
+
+        for i in range(5):
+            print(lang_dataset[i])
 
         dataset_lengths = np.array(
             [len(d) for d in lang_datasets],

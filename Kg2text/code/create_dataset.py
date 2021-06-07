@@ -7,7 +7,6 @@ from torch.utils.data import Dataset
 from fairseq.data import Dictionary
 import logging
 import os
-from myutils import load_bpe_tokenizer
 import argparse
 
 
@@ -196,10 +195,17 @@ class Kg2KgDataset(Dataset):
             logger.warning("Dataset for task: ", cfg.option, " is not specified, using eval dataset.")
             file_path = cfg.valid_file
 
-        with open(file_path, 'r') as f:
-            self.data = json.load(f)
-            print("Loaded data from ", file_path, " for task ", cfg.split)
-        f.close()
+        suffix = "." + file_path.split(".")[-1]
+        if suffix == ".json":
+            with open(file_path, 'r') as f:
+                self.data = json.load(f)
+                print("Loaded data from ", file_path, " for task ", cfg.split)
+            f.close()
+        else:
+            with open(file_path, 'r') as f:
+                self.data = f.readlines()
+                print("Loaded data from ", file_path, " for task ", cfg.split)
+            f.close()
         if cfg.percent > 1:
             self.data = self.data[:int(self.percent)]
         else:
@@ -380,9 +386,15 @@ class Kg2KgDataset(Dataset):
         if setting.option == "kg2kg":
             with open(file_name, "w") as f1:
                 #f1.write(x["text_bped"]+"\n"
-
+                isjson = True
+                if isinstance(self.data[0], str):
+                    isjson = False
                 for idx in range(L):
-                    entry = self.data[idx]
+                    if isjson == False:
+                        entry = json.loads(self.data[idx])
+                    else:
+                        entry = self.data[idx]
+                    
                     #sentence = random.choice(entry['text']) # TODO
                     KBs = entry['kbs'] # set of triples
 
@@ -418,8 +430,14 @@ class Kg2KgDataset(Dataset):
         
         elif setting.option == "text2text":
             with open(file_name, "w") as f1:
-                for i in range(L):
-                    entry = self.data[i]
+                isjson = True
+                if isinstance(self.data[0], str):
+                    isjson = False
+                for idx in range(L):
+                    if isjson == False:
+                        entry = json.loads(self.data[idx])
+                    else:
+                        entry = self.data[idx]
 
                     sentence = random.choice(entry['text'])
                     sentence = self.format_sentence(sentence, prepend_lang_tag=False)
@@ -438,8 +456,14 @@ class Kg2KgDataset(Dataset):
         
         if setting.option == "kg2kg":
             with open(file_name, "w") as f1:
-                for i in range(L):
-                    entry = self.data[i]
+                isjson = True
+                if isinstance(self.data[0], str):
+                    isjson = False
+                for idx in range(L):
+                    if isjson == False:
+                        entry = json.loads(self.data[idx])
+                    else:
+                        entry = self.data[idx]
 
                     sentence = ' '.join(entry['text'])
                     entities = []
@@ -488,8 +512,12 @@ class Kg2KgDataset(Dataset):
         
         elif setting.option == "text2text":
             with open(file_name, "w") as f1:
-                for i in range(L):
-                    entry = self.data[i]
+                isjson = True
+                for idx in range(L):
+                    if isjson == False:
+                        entry = json.loads(self.data[idx])
+                    else:
+                        entry = self.data[idx]
 
                     sentence = ' '.join(entry['text'])
                     sentence = self.format_sentence(sentence, prepend_lang_tag=False)
