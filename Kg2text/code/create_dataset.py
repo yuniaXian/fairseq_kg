@@ -329,7 +329,7 @@ class Kg2KgDataset(Dataset):
             sentence =sentence.lower()
         sent_bped = self.tgt_bpe.encode(sentence)
         
-
+        """
         if prepend_lang_tag:
             sent_format = self.lang_text_format
         else:
@@ -341,7 +341,8 @@ class Kg2KgDataset(Dataset):
             sent_format = sent_format.replace(" "+self.tgt_dict.eos_word, "")
         sent_tagged = sent_format.format(sent_bped)
         #sent_tokenized = self.tgt_bpe.encode(sent_tagged)
-        return sent_tagged
+        """
+        return sent_bped
     
     def get_reference(self, idx, do_lower_case=False):
         if do_lower_case:
@@ -367,8 +368,8 @@ class Kg2KgDataset(Dataset):
             sample = self.src_lang_tag + " " + sample
         if setting.add_eos:
             sample = sample + " " + self.src_dict.eos_word
-        if setting.add_eos:
-            sample = sample + " " + self.src_dict.eos_word
+        if setting.add_bos:
+            sample = self.src_dict.bos_word + " " + sample
         
         return sample
 
@@ -407,7 +408,7 @@ class Kg2KgDataset(Dataset):
 
                             entity = KBs[entity_label] # ['Sweet potato', 'Sweet potato', [['main ingredients', 'Binignit']]]
                             triple = self.format_triples(entity, setting)
-                            triples += triple + " " # triple: list of triples, list of str
+                            triples += triple # triple: list of triples, list of str
                         triples.strip()
                         triples = self.tag_post_process(triples, setting, "kg")
                         f1.write(triples + "\n")
@@ -421,7 +422,7 @@ class Kg2KgDataset(Dataset):
                     entry = self.data[i]
 
                     sentence = random.choice(entry['text'])
-                    sentence = self.format_sentence(sentence, prepend_lang_tag=setting.add_lang_tag)
+                    sentence = self.format_sentence(sentence, prepend_lang_tag=False)
 
                     sentence = self.tag_post_process(sentence, setting, "text")
 
@@ -491,7 +492,7 @@ class Kg2KgDataset(Dataset):
                     entry = self.data[i]
 
                     sentence = ' '.join(entry['text'])
-                    sentence = self.format_sentence(sentence, prepend_lang_tag=setting.add_lang_tag)
+                    sentence = self.format_sentence(sentence, prepend_lang_tag=False)
                     sentence = self.tag_post_process(sentence, setting, "text")
                     f1.write(sentence+"\n")
             print("finished writing to file: %s", file_name)

@@ -18,9 +18,9 @@ load_data_dir=${DATADIR}/dataset
 save_data_dir=${DATADIR}/dataset_denoising
 
 python ${KG2TEXT}/code/create_dataset.py \
-    --option text2text --tokenized true --tagged true \
-    --dataset webnlg \
-    --lang en_XX --lang_tag true \
+    --option kg2kg --tokenized true --tagged true \
+    --add_kg_tag true --add_text_tag true --add_lang_tag true --lang en_XX \
+    --dataset kgtext_wikidata \
     --config_file triples_dataset.yaml --setting_file token_setting.yaml  \
     --load_data_dir $load_data_dir --save_data_dir $save_data_dir \
     --efs ${EFS} \
