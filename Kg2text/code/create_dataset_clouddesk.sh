@@ -17,6 +17,7 @@ DATADIR=${EFS}/data-bin
 load_data_dir=${DATADIR}/dataset
 save_data_dir=${DATADIR}/dataset_denoising
 
+
 python ${KG2TEXT}/code/create_dataset.py \
     --option kg2kg --tokenized true --tagged true \
     --add_kg_tag true --add_text_tag true --add_lang_tag true --lang en_XX \

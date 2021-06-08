@@ -11,8 +11,6 @@ import torch
 from . import FairseqDataset, data_utils
 
 
-
-
 def collate(
     samples,
     pad_idx,
@@ -245,8 +243,8 @@ class DenoisingDataset(FairseqDataset):
             is_word_start = self.mask_whole_word.gather(0, source)
         else:
             is_word_start = torch.ones(source.size())
-        is_word_start[0] = 0
-        is_word_start[-1] = 0
+        is_word_start[0] = 0 # the beginning is not a word start TODO: [KG] is not word start is_word_start[1] = 0
+        is_word_start[-1] = 0 # eos is not word start
         return is_word_start
 
     def add_whole_word_mask(self, source, p):

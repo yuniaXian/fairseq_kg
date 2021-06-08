@@ -94,7 +94,7 @@ def collate(
     return batch
 
 
-class DenoisingDataset(FairseqDataset):
+class KgDenoisingDataset(FairseqDataset):
     """
     A wrapper around TokenBlockDataset for BART dataset.
 
@@ -141,8 +141,8 @@ class DenoisingDataset(FairseqDataset):
         self.permute_sentence_ratio = args.permute_sentences
         self.eos = eos if eos is not None else vocab.eos()
         self.item_transform_func = item_transform_func
-        self.kg_tokens = set("[KG]", "[TEXT]", "[ENT]", "[TRIPLE]", "[PRED]", "[SUB]")
-        self.lang_tags = set('[ar_AR]','[cs_CZ]', '[de_DE]', '[en_XX]', '[es_XX]', \
+        self.kg_tags = set(["[KG]", "[TEXT]", "[ENT]", "[TRIPLE]", "[PRED]", "[SUB]", "[SEP]"])
+        self.lang_tags = set(['[ar_AR]','[cs_CZ]', '[de_DE]', '[en_XX]', '[es_XX]', \
                 '[et_EE]', '[fi_FI]', '[fr_XX]', '[gu_IN]', '[hi_IN]', '[it_IT]', 
                 '[ja_XX]', '[kk_KZ]', 
                 '[ko_KR]', '[lt_LT]', '[lv_LV]', '[my_MM]', '[ne_NP]', '[nl_XX]', 
@@ -151,7 +151,7 @@ class DenoisingDataset(FairseqDataset):
                 '[id_ID]', '[ka_GE]', '[km_KH]', '[mk_MK]', '[ml_IN]', '[mn_MN]', 
                 '[mr_IN]', '[pl_PL]', '[ps_AF]', '[pt_XX]', '[sv_SE]', '[sw_KE]', 
                 '[ta_IN]', '[te_IN]', '[th_TH]', '[tl_XX]', '[uk_UA]', '[ur_PK]', 
-                '[xh_ZA]', '[gl_ES]', '[sl_SI]')
+                '[xh_ZA]', '[gl_ES]', '[sl_SI]'])
 
         if args.bpe != "gpt2":
             self.full_stop_index = self.vocab.eos()
@@ -196,65 +196,34 @@ class DenoisingDataset(FairseqDataset):
     def __getitem__(self, index):
         with data_utils.numpy_seed(self.seed, self.epoch, index):
             tokens = self.dataset[index]
-            assert tokens[-1] == self.eos
+            assert tokens[-1] == self.eos # TODO
             source, target = tokens, tokens.clone()
 
             # TODO add attr in init, add entities counts, add facts counts
             # only mask one part entity/pred/sub
+            """
             self.mask_ent_ratio, self.mask_pred_ratio, self.mask_sub_ratio = \
                 self.mask_kg_triples_ratio
+            """
             
             # [en_XX][KG][ENT] sweet potato [TRIPLE] [PRED] ingrediment [SUB] xxx recipe [TRIPLE]
             # [en_XX] [ENT] ▁United ▁Kingdom [TRIPLE] [PRED] ▁description [SUB] ▁United ▁Kingdom [TRIPLE] [PRED] ▁a ssem bly [SUB] ▁A ston ▁Martin ▁V 8 [TRIPLE]
             # ent part: between [ENT] and [TRIPLE]
             # sub part: between [SUB] and [TRIPLE]
             # pred part: between [PRED] and [SUB]
-             
 
-            def add_whole_ent_mask(source, p):
-                # determine where is ent part
-                ent_starts = source.index(self.ent)
-                ent_ends = [source[s:].index(self.triple) for s in ent_starts]
-                assert len(ent_starts) == len(ent_ends)
-                ent_starts_ends = [[ent_starts[i], ent_ends[i]] for i in range(len(ent_starts))]
-                # debug TOOD
-                ent_to_data_index = np.stack(
-                [
-                    np.arange(len(ent_starts)),  # starting index in dataset
-                    np.array(ent_starts_ends, dtype=np.compat.long),  # starting offset within starting index
-                ],
-                1, )
-                ent_lst = ent_to_data_index[0]
-                num_to_mask = int(math.ceil(len(ent_starts).float().sum() * p))
-                if num_to_mask == 0:
-                    return source
+            if self.mask_ratio > 0:
+                source = self.add_whole_word_mask(source, self.mask_ratio)
 
-                if self.mask_span_distribution is not None:
-                    raise NotImplementedError
-                else:
-                    indices = ent_lst[torch.randperm(ent_lst.size(0))[:num_to_mask]].squeeze(1)
-                # entities to be masked
-
-            
-            def add_whole_propery_mask(self, source, p, mask_tags=False):
-                # mask one class of property with ratio p
-                pass
-
-            def add_tag_mask_only(self, source, p, tag):
-                pass
-            
-            def ratio_partition(self):
-                pass
-            
+            """
             if self.mask_ent_ratio > 0:
                 pass
             if self.mask_pred_ratio > 0:
                 pass
             if self.mask_sub_ratio > 0:
                 pass
-
-
-
+            
+            """
             if self.permute_sentence_ratio > 0.0:
                 source = self.permute_sentences(source, self.permute_sentence_ratio)
 
@@ -273,8 +242,8 @@ class DenoisingDataset(FairseqDataset):
         assert (source >= 0).all()
         assert (source[1:-1] >= 1).all()
         assert (source <= len(self.vocab)).all()
-        assert source[0] == self.vocab.bos()
-        assert source[-1] == self.eos
+        assert source[0] == self.vocab.bos() # TODO change why?
+        assert source[-1] == self.eos # why  TODO
         return {
             "id": index,
             "source": source,
@@ -284,29 +253,7 @@ class DenoisingDataset(FairseqDataset):
     def __len__(self):
         return len(self.dataset)
 
-    def permute_sentences(self, source, p=1.0):
-        full_stops = source == self.full_stop_index
-        # Pretend it ends with a full stop so last span is a sentence
-        full_stops[-2] = 1
-
-        # Tokens that are full stops, where the previous token is not
-        sentence_ends = (full_stops[1:] * ~full_stops[:-1]).nonzero(as_tuple=False) + 2
-        result = source.clone()
-
-        num_sentences = sentence_ends.size(0)
-        num_to_permute = math.ceil((num_sentences * 2 * p) / 2.0)
-        substitutions = torch.randperm(num_sentences)[:num_to_permute]
-        ordering = torch.arange(0, num_sentences)
-        ordering[substitutions] = substitutions[torch.randperm(num_to_permute)]
-
-        # Ignore <bos> at start
-        index = 1
-        for i in ordering:
-            sentence = source[(sentence_ends[i - 1] if i > 0 else 1) : sentence_ends[i]]
-            result[index : index + sentence.size(0)] = sentence
-            index += sentence.size(0)
-        return result
-
+    
     def word_starts(self, source):
         if self.mask_whole_word is not None:
             is_word_start = self.mask_whole_word.gather(0, source)
@@ -425,7 +372,66 @@ class DenoisingDataset(FairseqDataset):
             source = self.add_insertion_noise(source, num_inserts / source.size(0))
 
         return source
+    
+    def add_whole_ent_mask(self, source, p):
+        # determine where is ent part
+        ent_starts = source.index(self.ent)
+        ent_ends = [source[s:].index(self.triple) for s in ent_starts]
+        assert len(ent_starts) == len(ent_ends)
+        ent_starts_ends = [[ent_starts[i], ent_ends[i]] for i in range(len(ent_starts))]
+        # debug TOOD
+        ent_to_data_index = np.stack(
+        [
+            np.arange(len(ent_starts)),  # starting index in dataset
+            np.array(ent_starts_ends, dtype=np.compat.long),  # starting offset within starting index
+        ],
+        1, )
+        ent_lst = ent_to_data_index[0]
+        num_to_mask = int(math.ceil(len(ent_starts).float().sum() * p))
+        if num_to_mask == 0:
+            return source
 
+        if self.mask_span_distribution is not None:
+            raise NotImplementedError
+        else:
+            indices = ent_lst[torch.randperm(ent_lst.size(0))[:num_to_mask]].squeeze(1)
+        # entities to be masked
+
+    
+    def add_whole_propery_mask(self, source, p, mask_tags=False):
+        # mask one class of property with ratio p
+        pass
+
+    def add_tag_mask_only(self, source, p, tag):
+        pass
+    
+    def ratio_partition(self):
+        pass
+    
+    def permute_sentences(self, source, p=1.0):
+        full_stops = source == self.full_stop_index
+        # Pretend it ends with a full stop so last span is a sentence
+        full_stops[-2] = 1
+
+        # Tokens that are full stops, where the previous token is not
+        sentence_ends = (full_stops[1:] * ~full_stops[:-1]).nonzero(as_tuple=False) + 2
+        result = source.clone()
+
+        num_sentences = sentence_ends.size(0)
+        num_to_permute = math.ceil((num_sentences * 2 * p) / 2.0)
+        substitutions = torch.randperm(num_sentences)[:num_to_permute]
+        ordering = torch.arange(0, num_sentences)
+        ordering[substitutions] = substitutions[torch.randperm(num_to_permute)]
+
+        # Ignore <bos> at start
+        index = 1
+        for i in ordering:
+            sentence = source[(sentence_ends[i - 1] if i > 0 else 1) : sentence_ends[i]]
+            result[index : index + sentence.size(0)] = sentence
+            index += sentence.size(0)
+        return result
+
+    
     def add_permuted_noise(self, tokens, p):
         num_words = len(tokens)
         num_to_permute = math.ceil(((num_words * 2) * p) / 2.0)

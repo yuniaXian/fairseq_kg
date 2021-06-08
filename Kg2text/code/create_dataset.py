@@ -6,7 +6,7 @@ import random
 from torch.utils.data import Dataset
 from fairseq.data import Dictionary
 import logging
-import os
+import os, itertools
 import argparse
 
 
@@ -104,8 +104,11 @@ class Kg2KgDatasetConfig(FairseqDataclass):
     #    metadata={"help": "if set, shuffle dataset samples before batching"},
     #)
 
+
+
+
 class Kg2KgDataset(Dataset):
-    def __init__(self,cfg, split, src_dict, tgt_dict, args, setting):
+    def __init__(self,cfg, split, src_dict, tgt_dict, args, setting, knowledge = None):
         super(Kg2KgDataset, self).__init__()
 
         #cfg = cfg.cfg
@@ -212,10 +215,8 @@ class Kg2KgDataset(Dataset):
             selected_size = int(len(self.data) * self.percent)
             self.data = self.data[:selected_size]
         
-        if cfg.dataset == "kgtext_wikidata":
-            with open(cfg.knowledge_file, 'r') as f:
-                self.knowledge = json.load(f)
-                print("Loaded data from ", cfg.knowledge_file, " for task ")
+        if knowledge:
+            self.knowledge = knowledge
 
     def tokenize_text(self, text, tokenizer, type):
         if type in ["sentencepiece", "mbart", "mbart50"]:
@@ -465,7 +466,7 @@ class Kg2KgDataset(Dataset):
                     else:
                         entry = self.data[idx]
 
-                    sentence = ' '.join(entry['text'])
+                    #sentence = ' '.join(entry['text'])
                     entities = []
                     for _ in entry['kblinks']:
                         if _ is not None and _ in self.knowledge and _ not in entities:
@@ -513,6 +514,8 @@ class Kg2KgDataset(Dataset):
         elif setting.option == "text2text":
             with open(file_name, "w") as f1:
                 isjson = True
+                if isinstance(self.data[0], str):
+                    isjson = False
                 for idx in range(L):
                     if isjson == False:
                         entry = json.loads(self.data[idx])
@@ -531,9 +534,20 @@ class Kg2KgDataset(Dataset):
             pass
 
     def __getitem__(self, idx):
-        entry = self.data[idx]
-        sentence = random.choice(entry['text']) # TODO
+        isjson = True
+        if isinstance(self.data[0], str):
+            isjson = False
+        if isjson == False:
+            entry = json.loads(self.data[idx])
+        else:
+            entry = self.data[idx]
         
+        if isinstance(entry["text"], str):
+            # text in dataset other than kgtext_wikidata
+            sentence = random.choice(entry['text']) # TODO
+        else:
+            # text in kgtext_wikidata
+            sentence = ' '.join(entry['text'])
         return entry, sentence
 
 
@@ -633,24 +647,49 @@ if __name__ == "__main__":
         return "_".join(string)
 
     token_style = token_config_name(setting, args, cfg)
-    save_data_subdir = os.path.join(save_data_dir, cfg.dataset, setting.lang, setting.option, token_style)
+    save_data_subdir = os.path.join(save_data_dir, cfg.dataset, setting.lang, setting.option)
+    load_data_subdir = os.path.join(load_data_dir, cfg.dataset)
     if not os.path.exists(save_data_subdir):
         os.makedirs(save_data_subdir)
     
+    knowledge = None
+    if cfg.dataset == "kgtext_wikidata":
+        with open(cfg.knowledge_file, 'r') as f:
+            knowledge = json.load(f)
+        f.close()
 
     if setting.option != "kg2text":
-        for split in ["test", "train", "valid"]:
-            data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args, setting)
-            save_data_file = os.path.join(save_data_subdir, split)
-            print(save_data_file)
-            if cfg.dataset == "kgtext_wikidata":
-                data.write2file_wikidata(setting, save_data_file)
+        for split in ["train", "train", "valid"]:
+            if os.path.exists(os.path.join(load_data_subdir, split+"00")):
+                for k in itertools.count():
+                    k = str(k).zfill(2)
+                    path_k = os.path.join(load_data_subdir, split+k)
+                    if not os.path.exists(path_k):
+                        break
+                    setattr(cfg, split+"_file", path_k)
+                    data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args, setting, knowledge)
+                    save_data_file = os.path.join(save_data_subdir, split+k)
+                    if cfg.dataset == "kgtext_wikidata":
+                
+                        print("Loaded data from ", cfg.knowledge_file, " for task ")
+                        data.write2file_wikidata(setting, save_data_file)
+                    else:
+                        data.write2file_non_wikidata(setting, save_data_file)
             else:
-                data.write2file_non_wikidata(setting, save_data_file)
+                data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args, setting, knowledge)
+                save_data_file = os.path.join(save_data_subdir, split)
+                print(save_data_file)
+
+                if cfg.dataset == "kgtext_wikidata":
+                    
+                    print("Loaded data from ", cfg.knowledge_file, " for task ")
+                    data.write2file_wikidata(setting, save_data_file)
+                else:
+                    data.write2file_non_wikidata(setting, save_data_file)
 
     elif setting.option == "kg2text":
         for split in ["test", "train", "valid"]:
-            data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args, setting)
+            data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args, setting, knowledge)
             save_data_file = os.path.join(save_data_subdir, split)
             
             save_input_file = save_data_file + ".input"

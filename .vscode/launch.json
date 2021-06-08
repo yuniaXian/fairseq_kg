@@ -85,7 +85,7 @@
         "--dataset",
         "kgtext_wikidata",
         "--add_eos",
-        "True",
+        "",
         "--add_bos",
         "",
         "--add_kg_tag",

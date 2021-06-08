@@ -11,6 +11,7 @@ from fairseq.data import (
     AppendTokenDataset,
     ConcatDataset,
     DenoisingDataset,
+    KgDenoisingDataset,
     Dictionary,
     PrependTokenDataset,
     ResamplingDataset,
@@ -183,7 +184,7 @@ class KgMultilingualDenoisingTask(DenoisingTask):
                 if language not in language_without_segmentations
                 else None
             )
-            lang_dataset = DenoisingDataset(
+            lang_dataset = KgDenoisingDataset(
                 dataset,
                 dataset.sizes,
                 self.dictionary,
