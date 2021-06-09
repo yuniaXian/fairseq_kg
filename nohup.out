@@ -1,0 +1,119 @@
+Traceback (most recent call last):
+  File "/home/xianjiay/efs-storage/workspaces/hoverboard/fairseq/Kg2text/code/create_dataset.py", line 2, in <module>
+    from sentencepiece import _add_snake_case
+ModuleNotFoundError: No module named 'sentencepiece'
+Namespace(add_bos=False, add_eos=False, add_kg_tag=True, add_lang_tag=True, add_text_tag=True, config_file='triples_dataset.yaml', dataset='kgtext_wikidata', efs='/home/xianjiay/efs-storage', lang='en_XX', load_data_dir='/home/xianjiay/efs-storage/data-bin/dataset', option='kg2kg', save_data_dir='/home/xianjiay/efs-storage/data-bin/dataset_denoising', seperate=False, setting_file='token_setting.yaml', simple=False, tagged=True, text_only=False, tokenized=True)
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train00  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train00
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train01  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train01
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train02  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train02
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train03  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train03
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train04  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train04
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train05  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train05
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train06  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train06
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train07  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train07
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train08  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train08
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train09  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train09
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train10  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train10
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train11  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train11
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train12  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train12
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train13  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train13
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train14  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train14
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train15  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train15
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train16  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train16
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train17  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train17
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train00  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train00
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train01  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train01
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train02  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train02
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train03  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train03
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train04  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train04
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train05  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train05
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train06  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train06
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train07  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train07
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train08  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train08
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train09  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train09
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train10  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train10
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train11  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train11
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train12  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train12
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train13  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train13
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train14  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train14
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train15  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train15
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train16  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train16
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/train17  for task  test
+Loaded data from  /home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/knowledge-full.json  for task 
+finished writing to file: %s /home/xianjiay/efs-storage/data-bin/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/train17
+Traceback (most recent call last):
+  File "/home/xianjiay/efs-storage/workspaces/hoverboard/fairseq/Kg2text/code/create_dataset.py", line 679, in <module>
+    data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args, setting, knowledge)
+  File "/home/xianjiay/efs-storage/workspaces/hoverboard/fairseq/Kg2text/code/create_dataset.py", line 208, in __init__
+    with open(file_path, 'r') as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/xianjiay/efs-storage/data-bin/dataset/kgtext_wikidata/valid'

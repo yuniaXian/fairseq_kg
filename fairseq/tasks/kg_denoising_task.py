@@ -19,7 +19,7 @@ from fairseq.data import (
     TokenBlockDataset,
     data_utils,
 )
-from fairseq.data.encoders.utils import get_whole_word_mask1
+from fairseq.data.encoders.utils import get_whole_word_mask1, get_special_token_mask
 from fairseq.tasks import register_task
 
 from .denoising import DenoisingTask
@@ -49,6 +49,22 @@ class KgMultilingualDenoisingTask(DenoisingTask):
             default="",
             metavar="N",
             help="languages without spacing between words dont support whole word masking",
+        )
+
+        parser.add_argument(
+            "--whole_word_mask_mode",
+            type=str,
+            default="word",
+            metavar="N",
+            help="word: whole word masking will not mask tags; mixed: whole word masking will mask tags or words; tags: whole word masking will only mask tags",
+        )
+
+        parser.add_argument(
+            "--property_mask_mode",
+            type=bool,
+            default=False,
+            metavar="N",
+            help="to be implemented",
         )
 
     @classmethod
@@ -131,6 +147,9 @@ class KgMultilingualDenoisingTask(DenoisingTask):
         )
 
         mask_whole_words = get_whole_word_mask1(self.args, self.dictionary)
+        # mask_whole_words: tensor([1,1,1,1,0,0,0,....,1,1]) start of word: 1 else: 0
+        mask_speical_tokens = get_special_token_mask(self.args, self.dictionary) # TODO GPU dtype?
+
         language_without_segmentations = self.args.no_whole_word_mask_langs.split(",")
         lang_datasets = []
         for language in languages:
@@ -184,12 +203,16 @@ class KgMultilingualDenoisingTask(DenoisingTask):
                 if language not in language_without_segmentations
                 else None
             )
+            lang_tag = "[{}]".format(language)
+
             lang_dataset = KgDenoisingDataset(
+                lang_tag,
                 dataset,
                 dataset.sizes,
                 self.dictionary,
                 self.mask_idx,
                 lang_mask_whole_words,
+                mask_speical_tokens,
                 shuffle=self.args.shuffle_instance,
                 seed=self.seed,
                 args=self.args,
@@ -197,8 +220,8 @@ class KgMultilingualDenoisingTask(DenoisingTask):
             )
             lang_datasets.append(lang_dataset)
 
-        for i in range(5):
-            print(lang_dataset[i])
+        print(lang_dataset[0])
+        print(lang_dataset[2000])
 
         dataset_lengths = np.array(
             [len(d) for d in lang_datasets],

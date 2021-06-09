@@ -114,17 +114,20 @@ class KgDenoisingDataset(FairseqDataset):
 
     def __init__(
         self,
+        cur_lang_tag,
         dataset,
         sizes,
         vocab,
         mask_idx,
         mask_whole_words,
+        mask_speical_tokens,
         shuffle,
         seed,
         args,
         eos=None,
         item_transform_func=None,
     ):
+        self.cur_lang_tag = cur_lang_tag
         self.dataset = dataset
 
         self.sizes = sizes
@@ -134,6 +137,8 @@ class KgDenoisingDataset(FairseqDataset):
         self.seed = seed
         self.mask_idx = mask_idx
         self.mask_whole_word = mask_whole_words
+        self.mask_special_token = mask_speical_tokens
+        self.whole_word_mask_mode = args.whole_word_mask_mode
         self.mask_ratio = args.mask
         self.random_ratio = args.mask_random
         self.insert_ratio = args.insert
@@ -141,7 +146,7 @@ class KgDenoisingDataset(FairseqDataset):
         self.permute_sentence_ratio = args.permute_sentences
         self.eos = eos if eos is not None else vocab.eos()
         self.item_transform_func = item_transform_func
-        self.kg_tags = set(["[KG]", "[TEXT]", "[ENT]", "[TRIPLE]", "[PRED]", "[SUB]", "[SEP]"])
+        self.kg_tags = set(["[KG]", "[TEXT]", "[ENT]", "[TRIPLE]", "[PRED]", "[SUB]", "[SEP]", "<mask>"])
         self.lang_tags = set(['[ar_AR]','[cs_CZ]', '[de_DE]', '[en_XX]', '[es_XX]', \
                 '[et_EE]', '[fi_FI]', '[fr_XX]', '[gu_IN]', '[hi_IN]', '[it_IT]', 
                 '[ja_XX]', '[kk_KZ]', 
@@ -152,6 +157,9 @@ class KgDenoisingDataset(FairseqDataset):
                 '[mr_IN]', '[pl_PL]', '[ps_AF]', '[pt_XX]', '[sv_SE]', '[sw_KE]', 
                 '[ta_IN]', '[te_IN]', '[th_TH]', '[tl_XX]', '[uk_UA]', '[ur_PK]', 
                 '[xh_ZA]', '[gl_ES]', '[sl_SI]'])
+
+
+
 
         if args.bpe != "gpt2":
             self.full_stop_index = self.vocab.eos()
@@ -227,9 +235,6 @@ class KgDenoisingDataset(FairseqDataset):
             if self.permute_sentence_ratio > 0.0:
                 source = self.permute_sentences(source, self.permute_sentence_ratio)
 
-            if self.mask_ratio > 0:
-                source = self.add_whole_word_mask(source, self.mask_ratio)
-
             if self.insert_ratio > 0:
                 source = self.add_insertion_noise(source, self.insert_ratio)
 
@@ -242,7 +247,7 @@ class KgDenoisingDataset(FairseqDataset):
         assert (source >= 0).all()
         assert (source[1:-1] >= 1).all()
         assert (source <= len(self.vocab)).all()
-        assert source[0] == self.vocab.bos() # TODO change why?
+        assert source[0] == self.vocab.bos() or source[0] == self.vocab.index(self.cur_lang_tag)# TODO change why?
         assert source[-1] == self.eos # why  TODO
         return {
             "id": index,
@@ -257,20 +262,38 @@ class KgDenoisingDataset(FairseqDataset):
     def word_starts(self, source):
         if self.mask_whole_word is not None:
             is_word_start = self.mask_whole_word.gather(0, source)
+            # the same as self.mask_whole_word[source]
         else:
             is_word_start = torch.ones(source.size())
         is_word_start[0] = 0
-        is_word_start[-1] = 0
+        is_word_start[-1] = 0 # eox TODO ?
         return is_word_start
+
+    def special_tokens(self, source):
+        if self.mask_special_token is not None:
+            is_special_token = self.mask_special_token.gather(0, source)
+        else:
+            is_special_token = torch.ones(source.size())
+        is_special_token[0] = 0
+        is_special_token[-1] = 0 
+        return is_special_token
 
     def add_whole_word_mask(self, source, p):
         is_word_start = self.word_starts(source)
-        # [0,0,1,1,....] is_word_start[i]: 1 if is word start else 0
-        num_to_mask = int(math.ceil(is_word_start.float().sum() * p))
+        is_special_token = self.special_tokens(source)
+
+        if self.whole_word_mask_mode == "word":
+            is_word_start += is_special_token
+        elif self.whole_word_mask_mode == "tag":
+            is_word_start = is_special_token
+        elif self.whole_word_mask_mode == "mixed":
+            pass
+        
+        num_to_mask = int(math.ceil((is_word_start==1).sum()*p))
         num_inserts = 0
         if num_to_mask == 0:
             return source
-
+        
         if self.mask_span_distribution is not None:
             lengths = self.mask_span_distribution.sample(sample_shape=(num_to_mask,))
 
@@ -305,7 +328,8 @@ class KgDenoisingDataset(FairseqDataset):
         else:
             lengths = torch.ones((num_to_mask,)).long()
         assert is_word_start[-1] == 0 # TODO ??
-        word_starts = is_word_start.nonzero(as_tuple=False)
+        word_starts = (is_word_start == 1).nonzero(as_tuple=False)
+        #special_toekns = is_special_token.nonzero(as_tuple=False)
         # word_starts: indexes which are word starts
         indices = word_starts[
             torch.randperm(word_starts.size(0))[:num_to_mask]
