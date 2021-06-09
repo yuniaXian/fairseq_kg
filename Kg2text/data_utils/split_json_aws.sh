@@ -1,6 +1,6 @@
-EFS=/home/xianjiay/efs-storage
-BASE=/home/xianjiay
-WORKSPACE=${EFS}/workspaces/hoverboard
+EFS=/home/ubuntu/efs-storage
+BASE=/home/ubuntu
+WORKSPACE=$BASE
 FAIRSEQ=${WORKSPACE}/fairseq/fairseq_cli
 KG2TEXT=${WORKSPACE}/fairseq/Kg2text
 
