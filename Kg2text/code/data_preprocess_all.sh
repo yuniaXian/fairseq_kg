@@ -2,8 +2,9 @@
 # specify directory: EFS, BASE, WORKSPACE
 # choose raw dataset: webnlg/kgtext_wikidata/...
 # set parameters:
-# --option: kg2kg/kg2text/text2text 
-# --seperate --text_only --tagged --tokenized --simple --lang --lang_tag
+# --option: kg2kg/kg2text/text2text
+source ~/anaconda3/bin/activate py37
+
 EFS=/home/xianjiay/efs-storage
 BASE=/home/xianjiay
 WORKSPACE=${EFS}/workspaces/hoverboard
@@ -15,21 +16,27 @@ TOKENIZER=${EFS}/tokenizer
 #langs_25=ar_AR,cs_CZ,de_DE,en_XX,es_XX,et_EE,fi_FI,fr_XX,gu_IN,hi_IN,it_IT,ja_XX,kk_KZ,ko_KR,lt_LT,lv_LV,my_MM,ne_NP,nl_XX,ro_RO,ru_RU,si_LK,tr_TR,vi_VN,zh_CN
 # NAME=webnlg/data_mbart50_wtags
 DATADIR=${EFS}/data-bin
-load_data_dir=${DATADIR}/dataset_denoising/kgtext_wikidata/en_XX/kg2kg
-save_data_dir=${DATADIR}/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/trial
+load_data_dir=${DATADIR}/dataset_denoising/webnlg/en_XX/kg2kg/
+save_data_dir=${DATADIR}/dataset_denoising/webnlg/en_XX/kg2kg/trial
 
+source ~/anaconda3/bin/activate py37
 
+i=0
+for file in $load_data_dir/valid*
+do
+        echo "Preprocess on" ${file}
+        
+        fairseq-preprocess \
+                --only-source \
+                --srcdict ${TOKENIZER}/mbart50/dict/dict.mbart50_wtags.txt \
+                --validpref ${file} \
+                --destdir $save_data_dir \
+                --workers 60
+        
+        echo "save to" $save_data_dir
+        mv $save_data_dir/valid.bin $save_data_dir/backup/valid$i.bin
+        mv $save_data_dir/valid.idx $save_data_dir/backup/valid$i.idx
 
+        i=$((i+1))
+done
 
-fairseq-preprocess \
-    --only-source \
-    --srcdict ${TOKENIZER}/mbart50/dict/dict.mbart50_wtags.txt \
-    --trainpref $load_data_dir/train01 \
-    --destdir $save_data_dir \
-    --all-gather-list-size 1310720 \
-    --workers 100
-
-mv ${DATADIR}/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/trial/train.idx ${DATADIR}/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/trial/train01.idx
-mv ${DATADIR}/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/trial/train.bin ${DATADIR}/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/trial/train01.bin
-#    --validpref $load_data_dir/valid \
-#    --testpref $load_data_dir/test \

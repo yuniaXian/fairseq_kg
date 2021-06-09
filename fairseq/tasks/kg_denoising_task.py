@@ -220,8 +220,8 @@ class KgMultilingualDenoisingTask(DenoisingTask):
             )
             lang_datasets.append(lang_dataset)
 
-        print(lang_dataset[0])
-        print(lang_dataset[2000])
+        a = lang_dataset[0]
+        b = lang_dataset[2000]
 
         dataset_lengths = np.array(
             [len(d) for d in lang_datasets],
