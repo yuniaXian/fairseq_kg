@@ -673,7 +673,7 @@ if __name__ == "__main__":
         return "_".join(string)
 
     token_style = token_config_name(setting, args, cfg)
-    save_data_subdir = os.path.join(save_data_dir, cfg.dataset, setting.lang) # TODO change to text2text
+    save_data_subdir = os.path.join(save_data_dir, cfg.dataset, setting.lang, args.option) # TODO change to text2text
     load_data_subdir = os.path.join(load_data_dir, cfg.dataset)
     if not os.path.exists(save_data_subdir):
         os.makedirs(save_data_subdir)
@@ -686,14 +686,17 @@ if __name__ == "__main__":
             
         f.close()
         load_end_time = time.time()
-        print("Loaded data from %s taks %d seconds" % (cfg.knowledge_file, load_end_time-load_start_time))
+        print("Loaded data from %s takes %d seconds" % (cfg.knowledge_file, load_end_time-load_start_time))
     
     import glob
+    import concurrent.futures
+    from concurrent.futures import ThreadPoolExecutor
+    
     if setting.option != "kg2text":
-        for split in ["train"]:
+        for split in ["valid"]:
             files_list = sorted(glob.glob(os.path.join(load_data_subdir, split)+"??"))
             if files_list:
-                for path_k in files_list:
+                def func(path_k):
                     round_start_time = time.time()
                     k = path_k[-2:]
                     setattr(cfg, split+"_file", path_k)
@@ -705,6 +708,10 @@ if __name__ == "__main__":
                         data.write2file_non_wikidata(setting, save_data_file)
                     round_end_time = time.time()
                     print("finished the %s-th round, taking %d seconds" % (k, round_end_time-round_start_time))
+
+                with concurrent.futures.ProcessPoolExecutor() as executor:
+                    executor.map(func, files_list)
+
             elif os.path.exists(os.path.join(load_data_subdir, split)):
                 data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args, setting, knowledge)
                 save_data_file = os.path.join(save_data_subdir, split)
