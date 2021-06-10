@@ -1,6 +1,6 @@
 # dataset info
 ## kgtext_wikidata:
-    train.json: 6980000
+    train.json: 6980000 -> 40 0000 samples/ 
     valid.json: 10000
     test.json: 10000
 ## webnlg:

@@ -4,9 +4,9 @@
 # set parameters:
 # --option: kg2kg/kg2text/text2text 
 # --seperate --text_only --tagged --tokenized --simple --lang --lang_tag
-EFS=/home/ubuntu/efs-storage
-BASE=/home/ubuntu
-WORKSPACE=$BASE
+EFS=/home/xianjiay/efs-storage
+BASE=/home/xianjiay
+WORKSPACE=${EFS}/workspaces/hoverboard
 FAIRSEQ=${WORKSPACE}/fairseq/fairseq_cli
 KG2TEXT=${WORKSPACE}/fairseq/Kg2text
 #PRETRAIN=${EFS}/models/mbart50.ft.nn/model.pt
@@ -27,4 +27,4 @@ python ${KG2TEXT}/code/create_dataset.py \
     --efs ${EFS} \
 
 # new files train test valid will be created in folder: save_data_dir/$dataset/$lang/$option/$style
-# /home/ubuntu/efs-storage/data-bin/dataset_denoising/webnlg/en_XX/kg2kg/tagged_tokenized
+# /home/xianjiay/efs-storage/data-bin/dataset_denoising/webnlg/en_XX/kg2kg/tagged_tokenized

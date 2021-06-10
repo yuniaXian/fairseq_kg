@@ -4,9 +4,9 @@
 # set parameters:
 # --option: kg2kg/kg2text/text2text 
 # --seperate --text_only --tagged --tokenized --simple --lang --lang_tag
-EFS=/home/xianjiay/efs-storage
-BASE=/home/xianjiay
-WORKSPACE=${EFS}/workspaces/hoverboard
+EFS=/home/ubuntu/efs-storage
+BASE=/home/ubuntu
+WORKSPACE=$BASE
 FAIRSEQ=${WORKSPACE}/fairseq/fairseq_cli
 KG2TEXT=${WORKSPACE}/fairseq/Kg2text
 #PRETRAIN=${EFS}/models/mbart50.ft.nn/model.pt
@@ -15,7 +15,7 @@ KG2TEXT=${WORKSPACE}/fairseq/Kg2text
 # NAME=webnlg/data_mbart50_wtags
 DATADIR=${EFS}/data-bin
 load_data_dir=${DATADIR}/dataset
-save_data_dir=${DATADIR}/dataset_denoising
+save_data_dir=$BASE/dataset_denoising/temp
 
 
 python ${KG2TEXT}/code/create_dataset.py \
@@ -27,4 +27,4 @@ python ${KG2TEXT}/code/create_dataset.py \
     --efs ${EFS} \
 
 # new files train test valid will be created in folder: save_data_dir/$dataset/$lang/$option/$style
-# /home/xianjiay/efs-storage/data-bin/dataset_denoising/webnlg/en_XX/kg2kg/tagged_tokenized
+# /home/ubuntu/efs-storage/data-bin/dataset_denoising/webnlg/en_XX/kg2kg/tagged_tokenized

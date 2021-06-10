@@ -6,7 +6,7 @@ import random
 from torch.utils.data import Dataset
 from fairseq.data import Dictionary
 import logging
-import os, itertools
+import os, itertools, time
 import argparse
 
 
@@ -424,7 +424,7 @@ class Kg2KgDataset(Dataset):
                             triples += triple # triple: list of triples, list of str
                         triples.strip()
                         triples = self.tag_post_process(triples, setting, "kg")
-                        f1.write(triples + "\n")
+                        f1.write(triples + "\n") # TODO comment
 
             print("finished writing to file: %s", file_name)
             f1.close()
@@ -457,22 +457,55 @@ class Kg2KgDataset(Dataset):
         
         if setting.option == "kg2kg":
             with open(file_name, "w") as f1:
-                isjson = True
-                if isinstance(self.data[0], str):
-                    isjson = False
-                for idx in range(L):
-                    if isjson == False:
-                        entry = json.loads(self.data[idx])
-                    else:
-                        entry = self.data[idx]
 
-                    #sentence = ' '.join(entry['text'])
-                    entities = []
-                    for _ in entry['kblinks']:
-                        if _ is not None and _ in self.knowledge and _ not in entities:
-                            entities.append(_)
-                    
-                    if self.seperate == True:
+                line_count = 0
+                line_cache = ""
+                if self.seperate == False:
+                    start_time = time.time()
+                    for idx in range(L):
+                        entry = json.loads(self.data[idx])
+                        entities = []
+                        for _ in entry['kblinks']:
+                            if _ is not None and _ in self.knowledge and _ not in entities:
+                                entities.append(_)
+
+                        if 'title' in entry:
+                            entity = self.knowledge[entry['title_kb_id']]
+                            triples = self.format_triples(entity, setting)
+
+                        for i, entity_id in enumerate(entities):
+                            if i + 1 >= self.max_entity:
+                                break
+
+                            entity = self.knowledge[entity_id]
+                            triple = self.format_triples(entity, setting)
+                            triples += triple
+                            # string: all the knowledge(description, rels) tokenized vector
+                            # triple_id: indicate different triples in the string
+                        triples.strip()
+                        triples = self.tag_post_process(triples, setting, "kg")
+                        line_cache += triples + "\n"
+                        line_count += 1
+                        if line_count > 50000:
+                            end_time = time.time()
+                            f1.write(line_cache)
+                            write_time = time.time()
+                            line_count = 0
+                            line_cache = ""
+                            print("search time: %d, write time: %d", end_time-start_time, write_time-end_time)
+                            start_time = time.time()
+                    if line_cache:
+                        f1.write(line_cache)
+                        line_count = 0
+                        line_cache = ""
+                
+                elif self.seperate == True:
+                    for idx in range(L):
+                        entry = json.loads(self.data[idx])
+                        entities = []
+                        for _ in entry['kblinks']:
+                            if _ is not None and _ in self.knowledge and _ not in entities:
+                                entities.append(_)
                         if 'title' in entry:
                             entity = self.knowledge[entry['title_kb_id']]
                             triples = self.format_triples(entity, setting)
@@ -490,24 +523,17 @@ class Kg2KgDataset(Dataset):
                             # triple_id: indicate different triples in the string
                             triple.strip()
                             triple = self.tag_post_process(triple, setting, "kg")
-                            f1.write(triple + "\n")
-                    else:
-                        if 'title' in entry:
-                            entity = self.knowledge[entry['title_kb_id']]
-                            triples = self.format_triples(entity, setting)
-
-                        for i, entity_id in enumerate(entities):
-                            if i + 1 >= self.max_entity:
-                                break
-
-                            entity = self.knowledge[entity_id]
-                            triple = self.format_triples(entity, setting)
-                            triples += triple
-                            # string: all the knowledge(description, rels) tokenized vector
-                            # triple_id: indicate different triples in the string
-                        triples.strip()
-                        triples = self.tag_post_process(triples, setting, "kg")
-                        f1.write(triples + "\n")
+                            line_cache += triple + "\n"
+                            line_count += 1
+                        if line_count > 5000:
+                            f1.write(line_cache)
+                            line_count = 0
+                            line_cache = ""
+                    if line_cache:
+                        f1.write(line_cache)
+                        line_count = 0
+                        line_cache = ""
+         
             print("finished writing to file: %s", file_name)
             f1.close()
         
@@ -647,7 +673,7 @@ if __name__ == "__main__":
         return "_".join(string)
 
     token_style = token_config_name(setting, args, cfg)
-    save_data_subdir = os.path.join(save_data_dir, cfg.dataset, setting.lang, setting.option)
+    save_data_subdir = os.path.join(save_data_dir, cfg.dataset, setting.lang) # TODO change to text2text
     load_data_subdir = os.path.join(load_data_dir, cfg.dataset)
     if not os.path.exists(save_data_subdir):
         os.makedirs(save_data_subdir)
@@ -656,10 +682,11 @@ if __name__ == "__main__":
     if cfg.dataset == "kgtext_wikidata":
         with open(cfg.knowledge_file, 'r') as f:
             knowledge = json.load(f)
+            print("Loaded data from ", cfg.knowledge_file)
         f.close()
 
     if setting.option != "kg2text":
-        for split in ["train", "train", "valid"]:
+        for split in ["train"]:
             if os.path.exists(os.path.join(load_data_subdir, split+"00")):
                 for k in itertools.count():
                     k = str(k).zfill(2)
@@ -671,38 +698,41 @@ if __name__ == "__main__":
                     save_data_file = os.path.join(save_data_subdir, split+k)
                     if cfg.dataset == "kgtext_wikidata":
                 
-                        print("Loaded data from ", cfg.knowledge_file, " for task ")
+                        
                         data.write2file_wikidata(setting, save_data_file)
                     else:
                         data.write2file_non_wikidata(setting, save_data_file)
+            elif not os.path.exists(os.path.join(load_data_subdir, split)):
+                continue
             else:
                 data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args, setting, knowledge)
                 save_data_file = os.path.join(save_data_subdir, split)
                 print(save_data_file)
 
                 if cfg.dataset == "kgtext_wikidata":
-                    
-                    print("Loaded data from ", cfg.knowledge_file, " for task ")
                     data.write2file_wikidata(setting, save_data_file)
                 else:
                     data.write2file_non_wikidata(setting, save_data_file)
 
     elif setting.option == "kg2text":
         for split in ["test", "train", "valid"]:
-            data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args, setting, knowledge)
-            save_data_file = os.path.join(save_data_subdir, split)
-            
-            save_input_file = save_data_file + ".input"
-            save_label_file = save_data_file + ".label"
-            print(save_data_file, save_input_file, save_label_file)
-        
-            if cfg.dataset == "kgtext_wikidata":
-                setting.option = "kg2kg"
-                data.write2file_wikidata(setting, save_input_file)
-                setting.option = "text2text"
-                data.write2file_wikidata(setting, save_label_file)
+            if not os.path.exists(os.path.join(load_data_subdir, split)):
+                continue
             else:
-                setting.option = "kg2kg"
-                data.write2file_non_wikidata(setting, save_input_file)
-                setting.option = "text2text"
-                data.write2file_non_wikidata(setting, save_label_file)
+                data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args, setting, knowledge)
+                save_data_file = os.path.join(save_data_subdir, split)
+                
+                save_input_file = save_data_file + ".input"
+                save_label_file = save_data_file + ".label"
+                print(save_data_file, save_input_file, save_label_file)
+            
+                if cfg.dataset == "kgtext_wikidata":
+                    setting.option = "kg2kg"
+                    data.write2file_wikidata(setting, save_input_file)
+                    setting.option = "text2text"
+                    data.write2file_wikidata(setting, save_label_file)
+                else:
+                    setting.option = "kg2kg"
+                    data.write2file_non_wikidata(setting, save_input_file)
+                    setting.option = "text2text"
+                    data.write2file_non_wikidata(setting, save_label_file)
