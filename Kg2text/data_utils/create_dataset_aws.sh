@@ -15,10 +15,10 @@ KG2TEXT=${WORKSPACE}/fairseq/Kg2text
 # NAME=webnlg/data_mbart50_wtags
 DATADIR=${EFS}/data-bin
 load_data_dir=${DATADIR}/dataset
-save_data_dir=$BASE/dataset_denoising/temp
+save_data_dir=$BASE/dataset_denoising/
 
 
-python ${KG2TEXT}/code/create_dataset.py \
+python ${KG2TEXT}/code/create_dataset_multiprocess.py \
     --option kg2kg --tokenized true --tagged true \
     --add_kg_tag true --add_text_tag true --add_lang_tag true --lang en_XX \
     --dataset kgtext_wikidata \

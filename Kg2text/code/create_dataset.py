@@ -690,7 +690,7 @@ if __name__ == "__main__":
     
     import glob
     if setting.option != "kg2text":
-        for split in ["test"]:
+        for split in ["train", "valid", "test"]:
             files_list = sorted(glob.glob(os.path.join(load_data_subdir, split)+"??"))
             if files_list:
                 for path_k in files_list:

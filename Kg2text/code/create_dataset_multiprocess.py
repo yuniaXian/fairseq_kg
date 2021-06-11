@@ -693,7 +693,7 @@ if __name__ == "__main__":
     from concurrent.futures import ThreadPoolExecutor
     
     if setting.option != "kg2text":
-        for split in ["valid"]:
+        for split in ["valid", "test", "train"]:
             files_list = sorted(glob.glob(os.path.join(load_data_subdir, split)+"??"))
             if files_list:
                 def func(path_k):
