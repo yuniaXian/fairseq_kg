@@ -10,9 +10,9 @@ save_data_dir=${DATADIR}/dataset_denoising
 
 SECONDS=0
 
-cat $load_data_dir/kgtext_wikidata/valid.json \
+cat $load_data_dir/kgtext_wikidata/test.json \
   | jq -cn --stream 'fromstream(1|truncate_stream(inputs))' \
-  | split --lines=400000 --numeric-suffixes - $load_data_dir/kgtext_wikidata/valid
+  | split --lines=400000 --numeric-suffixes - $load_data_dir/kgtext_wikidata/test
 
 
 if (( $SECONDS > 3600 )) ; then
