@@ -80,8 +80,8 @@ class Kg2KgDatasetConfig(FairseqDataclass):
     src_wtags: bool = field(default=True, metadata={"help": "."})
     tgt_wtags: bool = field(default=True, metadata={"help": "."})
     # Kgpt seq related
-    max_entity: int = field(default=50, metadata={"help": "."})
-    max_fact: int = field(default=50, metadata={"help": "."})
+    max_entity: int = field(default=12, metadata={"help": "."})
+    max_fact: int = field(default=8, metadata={"help": "."})
     percent: float = field(default=1.0, metadata={"help": ""})
 
     forbid_duplicate_relation: bool = field(default=True, metadata={"help": "."})
@@ -161,6 +161,8 @@ class Kg2KgDataset(Dataset):
         self.max_entity = cfg.max_entity
         self.max_fact = cfg.max_fact
         self.forbid_duplicate_relation = cfg.forbid_duplicate_relation
+        self.duplicate_relations_allowed = cfg.duplicate_relations_allowed
+        assert self.duplicate_relations_allowed >= 1
         self.percent = cfg.percent
         self.lower_case = cfg.lower_case
 
@@ -169,21 +171,17 @@ class Kg2KgDataset(Dataset):
 
         self.src_tokenizer = cfg.tokenizer_src #
         self.src_max = cfg.src_length
+        self.tgt_max = cfg.tgt_length
         self.src_lang_tag_template = cfg.src_lang_tag_template
         self.src_enc_type = cfg.encoder_arch
         self.src_lang = cfg.src_lang
         self.prepend_src_lang_tag = cfg.prepend_src_lang_tag
-        self.src_tagged = cfg.src_tagged
-        self.kg_tagged = cfg.kg_tagged
-        self.text_tagged = cfg.text_tagged
 
         self.tgt_tokenizer = cfg.tokenizer_tgt
-        self.tgt_max = cfg.tgt_length
+        
         self.tgt_lang_tag_template = cfg.tgt_lang_tag_template
         self.tgt_lang = cfg.tgt_lang
         self.prepend_tgt_lang_tag = cfg.prepend_tgt_lang_tag
-
-        self.sep= cfg.sep_symbol
 
         self.seperate=args.seperate
         self.text_only=args.text_only
@@ -269,7 +267,8 @@ class Kg2KgDataset(Dataset):
         triples = []
         if seperate == False:
             for fact in entity[2]:
-                if self.forbid_duplicate_relation and fact[0] in added:
+                # TODO: implement duplicate_relations_allowed
+                if fact[0] in added and self.forbid_duplicate_relation:
                     continue
                 else:
                     if lower_case:
@@ -278,8 +277,7 @@ class Kg2KgDataset(Dataset):
                         pred, sub = fact[0], fact[1]
 
                     if tokenized:
-                         pred, sub = self.src_bpe.encode(pred),\
-                self.src_bpe.encode(sub)
+                        pred, sub = self.src_bpe.encode(pred), self.src_bpe.encode(sub)
                     # ["Sweet potato", "main  ingredients", "Binignit"]
                     
                     if text_only:
@@ -290,9 +288,12 @@ class Kg2KgDataset(Dataset):
                         triple_part += self.triple_unseperate_tagged_format.format(pred, sub) + " "
                     else:
                         raise NotImplementedError
-
+                
+                    added.add(fact[0])
+                
                 if len(added) >= self.max_fact:
                     break
+                
             
             # triples: ["Sweet potato | main ingredients | Binignit", "Sweet potato | yyy | zzz" ]
             return triple_part
@@ -309,8 +310,7 @@ class Kg2KgDataset(Dataset):
                         pred, sub = fact[0], fact[1]
 
                     if tokenized:
-                         pred, sub = self.src_bpe.encode(pred),\
-                self.src_bpe.encode(sub)
+                        pred, sub = self.src_bpe.encode(pred), self.src_bpe.encode(sub)
                     # ["Sweet potato", "main  ingredients", "Binignit"]
                     
                     if text_only:
@@ -324,6 +324,8 @@ class Kg2KgDataset(Dataset):
                     
                     triples.append(triple_part)
 
+                    added.add(fact[0])
+                
                 if len(added) >= self.max_fact:
                     break
             
@@ -482,9 +484,13 @@ class Kg2KgDataset(Dataset):
                             triples += triple
                             # string: all the knowledge(description, rels) tokenized vector
                             # triple_id: indicate different triples in the string
-                        triples.strip()
+                        triples = triples.strip()
                         triples = self.tag_post_process(triples, setting, "kg")
-                        line_cache += triples + "\n"
+                        triples_cut = triples.split(" ")
+                        triples_out = triples_cut if len(triples_cut)<= self.src_max else triples_cut[:self.src_max]
+                        triples_out = " ".join(triples_out)
+
+                        line_cache += triples_out + "\n"
                         line_count += 1
                         if line_count > 5000:
                             end_time = time.time()
@@ -679,7 +685,7 @@ if __name__ == "__main__":
         os.makedirs(save_data_subdir)
     
     knowledge = None
-    if cfg.dataset == "kgtext_wikidata":
+    if cfg.dataset == "kgtext_wikidata" and args.option == "kg2kg":
         load_start_time = time.time()
         with open(cfg.knowledge_file, 'r') as f:
             knowledge = json.load(f)
@@ -695,13 +701,15 @@ if __name__ == "__main__":
     if setting.option != "kg2text":
         for split in ["valid", "test", "train"]:
             files_list = sorted(glob.glob(os.path.join(load_data_subdir, split)+"??"))
-            if files_list:
+            if files_list:             
                 def func(path_k):
                     round_start_time = time.time()
+                    #k = path_k[-2:] if path_k[-2:] == "00" else str(int(path_k[-2:])+18)
                     k = path_k[-2:]
                     setattr(cfg, split+"_file", path_k)
-                    data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args, setting, knowledge)
                     save_data_file = os.path.join(save_data_subdir, split+k)
+                    data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args, setting, knowledge)
+                    
                     if cfg.dataset == "kgtext_wikidata":
                         data.write2file_wikidata(setting, save_data_file)
                     else:
@@ -711,6 +719,7 @@ if __name__ == "__main__":
 
                 with concurrent.futures.ProcessPoolExecutor() as executor:
                     executor.map(func, files_list)
+
 
             elif os.path.exists(os.path.join(load_data_subdir, split)):
                 data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args, setting, knowledge)

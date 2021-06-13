@@ -174,7 +174,7 @@ def load_checkpoint(cfg: CheckpointConfig, trainer, **passthrough_args):
             " or reset_lr_scheduler or reset_meters or reset_dataloader"
         )
 
-    suffix = trainer.checkpoint_suffix
+    suffix = trainer.checkpoint_suffix # fully sharded??
     if (
         cfg.restore_file == "checkpoint_last.pt"
     ):  # default value of restore_file is 'checkpoint_last.pt'

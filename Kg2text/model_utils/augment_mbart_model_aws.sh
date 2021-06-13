@@ -1,6 +1,6 @@
 EFS=/home/ubuntu/efs-storage
 BASE=/home/ubuntu
-WORKSPACE=${EFS}/workspaces/hoverboard
+WORKSPACE=$BASE
 FAIRSEQ=${WORKSPACE}/fairseq/fairseq_cli
 KG2TEXT=${WORKSPACE}/fairseq/Kg2text
 TOKENIZER=${EFS}/tokenizer
@@ -9,9 +9,8 @@ TOKENIZER=${EFS}/tokenizer
 #langs_25=ar_AR,cs_CZ,de_DE,en_XX,es_XX,et_EE,fi_FI,fr_XX,gu_IN,hi_IN,it_IT,ja_XX,kk_KZ,ko_KR,lt_LT,lv_LV,my_MM,ne_NP,nl_XX,ro_RO,ru_RU,si_LK,tr_TR,vi_VN,zh_CN
 # NAME=webnlg/data_mbart50_wtags
 DATADIR=${EFS}/data-bin/dataset_denoising/kgtext_wikidata
-PRETRAIN=${EFS}/models/mbart50.ft.nn/model_wtags0/model.pt
 
 python $KG2TEXT/model_utils/augment_mbart_model.py \
-   /home/xianjiay/efs-storage/fairseq/Kg2text/model/mbart50.ft.nn \
-   --tgt-dict "/home/xianjiay/efs-storage/fairseq/Kg2text/data-bin/dict.mbart50_wtags.txt" \
-   --save-to "/home/xianjiay/efs-storage/fairseq/Kg2text/model/mbart50.ft.nn/model_wtags0"
+   $EFS/models/mbart50.ft.nn \
+   --tgt-dict $DATADIR/dict.txt \
+   --save-to $EFS/models/mbart50.ft.nn/model_wtags0

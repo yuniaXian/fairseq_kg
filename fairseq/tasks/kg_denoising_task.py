@@ -221,7 +221,7 @@ class KgMultilingualDenoisingTask(DenoisingTask):
             lang_datasets.append(lang_dataset)
 
         a = lang_dataset[0]
-        b = lang_dataset[2000]
+        b = lang_dataset[200]
 
         dataset_lengths = np.array(
             [len(d) for d in lang_datasets],
@@ -270,7 +270,7 @@ class KgMultilingualDenoisingTask(DenoisingTask):
             dataset = ConcatDataset(lang_datasets)
             lang_splits = [split]
             for lang_id, lang_dataset in enumerate(lang_datasets):
-                split_name = split + "_" + languages[lang_id] # eval_en_XX
+                split_name = split + "_" + languages[lang_id] # valid_en_XX
                 lang_splits.append(split_name)
                 self.datasets[split_name] = lang_dataset
 
@@ -286,6 +286,8 @@ class KgMultilingualDenoisingTask(DenoisingTask):
             dataset,
             sort_order=[
                 shuffle,
-                dataset.sizes,
+                dataset.sizes, # an np array of sizes of samples
             ],
         )
+
+        print("Done")

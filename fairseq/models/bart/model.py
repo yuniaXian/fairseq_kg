@@ -355,6 +355,15 @@ def bart_large_architecture(args):
     args.pooler_dropout = getattr(args, "pooler_dropout", 0.0)
 
 
+@register_model_architecture("bart", "kg_mbart_large")
+def mbart_large_architecture(args):
+    args.no_scale_embedding = getattr(args, "no_scale_embedding", False)
+    args.max_target_positions = None
+    args.max_source_positions = None
+    bart_large_architecture(args)
+
+
+
 @register_model_architecture("bart", "bart_base")
 def bart_base_architecture(args):
     args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 768)

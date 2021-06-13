@@ -695,7 +695,7 @@ if __name__ == "__main__":
             if files_list:
                 for path_k in files_list:
                     round_start_time = time.time()
-                    k = path_k[-2:]
+                    k = path_k[-2:] if path_k[-2:] == "00" else k = str(int(path_k[-2:])+18)
                     setattr(cfg, split+"_file", path_k)
                     data = Kg2KgDataset(cfg, split, tgt_dict, tgt_dict, args, setting, knowledge)
                     save_data_file = os.path.join(save_data_subdir, split+k)

@@ -2,13 +2,14 @@
 # specify directory: EFS, BASE, WORKSPACE
 # choose raw dataset: webnlg/kgtext_wikidata/...
 # set parameters:
-# --option: kg2kg/kg2text/text2text
+# --option: kg2kg/kg2text/text2text 
+# --seperate --text_only --tagged --tokenized --simple --lang --lang_tag
 source ~/anaconda3/bin/activate pytorch_latest_p37
 #source ~/anaconda3/bin/activate py37
 
 EFS=/home/ubuntu/efs-storage
 BASE=/home/ubuntu
-WORKSPACE=${EFS}/workspaces/hoverboard
+WORKSPACE=$BASE
 FAIRSEQ=${WORKSPACE}/fairseq/fairseq_cli
 KG2TEXT=${WORKSPACE}/fairseq/Kg2text
 TOKENIZER=${EFS}/tokenizer
@@ -17,11 +18,38 @@ TOKENIZER=${EFS}/tokenizer
 #langs_25=ar_AR,cs_CZ,de_DE,en_XX,es_XX,et_EE,fi_FI,fr_XX,gu_IN,hi_IN,it_IT,ja_XX,kk_KZ,ko_KR,lt_LT,lv_LV,my_MM,ne_NP,nl_XX,ro_RO,ru_RU,si_LK,tr_TR,vi_VN,zh_CN
 # NAME=webnlg/data_mbart50_wtags
 DATADIR=${EFS}/data-bin
-load_data_dir=${BASE}/dataset_denoising/kgtext_wikidata/en_XX/kg2kg
-save_data_dir=${BASE}/dataset_denoising/kgtext_wikidata/en_XX
+load_data_dir=${BASE}/dataset_denoising/kgtext_wikidata/en_XX/tagged_tokenized
+save_data_dir=${DATADIR}/dataset_denoising/kgtext_wikidata/en_XX
 
+SECONDS=0
+
+
+fairseq-preprocess \
+    --only-source \
+    --srcdict ${TOKENIZER}/mbart50/dict/dict.mbart50_wtags.txt \
+    --validpref $load_data_dir/valid00 \
+    --testpref $load_data_dir/test00 \
+    --destdir $save_data_dir/temp \
+    --workers 60
+
+
+if (( $SECONDS > 3600 )) ; then
+    let "hours=SECONDS/3600"
+    let "minutes=(SECONDS%3600)/60"
+    let "seconds=(SECONDS%3600)%60"
+    echo "Current round takes $hours hour(s), $minutes minute(s) and $seconds second(s)" 
+elif (( $SECONDS > 60 )) ; then
+    let "minutes=(SECONDS%3600)/60"
+    let "seconds=(SECONDS%3600)%60"
+    echo "Current round takes $minutes minute(s) and $seconds second(s)"
+else
+    echo "Current round takes $SECONDS seconds"
+fi
 
 i=0
+
+
+<< comment
 for file in $load_data_dir/valid*
 do
         echo "Preprocess on" ${file}
@@ -39,31 +67,5 @@ do
 
         i=$((i+1))
 done
-
-mv $save_data_dir/valid0.bin $save_data_dir/valid.bin
-mv $save_data_dir/valid0.idx $save_data_dir/valid.idx
-
-
-
-d i=0
-for file in $load_data_dir/train*
-do
-        echo "Preprocess on" ${file}
-        
-        fairseq-preprocess \
-                --only-source \
-                --srcdict ${TOKENIZER}/mbart50/dict/dict.mbart50_wtags.txt \
-                --trainpref ${file} \
-                --destdir $save_data_dir/temp \
-                --workers 120
-        
-        echo "save to" $save_data_dir
-        mv $save_data_dir/temp/train.bin $save_data_dir/train$i.bin
-        mv $save_data_dir/temp/train.idx $save_data_dir/train$i.idx
-
-        i=$((i+1))
-done
-
-mv $save_data_dir/train0.bin $save_data_dir/train.bin
-mv $save_data_dir/train0.idx $save_data_dir/train.idx
+comment
 

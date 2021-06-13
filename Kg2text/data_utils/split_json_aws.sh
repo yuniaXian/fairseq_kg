@@ -27,6 +27,8 @@ else
     echo "Current round takes $SECONDS seconds"
 fi
 
+
+SECONDS=0
 cat $load_data_dir/kgtext_wikidata/test.json \
   | jq -cn --stream 'fromstream(1|truncate_stream(inputs))' \
   | split --lines=400000 --numeric-suffixes - $load_data_dir/kgtext_wikidata/test

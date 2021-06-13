@@ -17,6 +17,7 @@ DATADIR=${EFS}/data-bin
 load_data_dir=${DATADIR}/dataset
 save_data_dir=$BASE/dataset_denoising/
 
+source ~/anaconda3/bin/activate pytorch_latest_p37
 
 python ${KG2TEXT}/code/create_dataset_multiprocess.py \
     --option kg2kg --tokenized true --tagged true \
