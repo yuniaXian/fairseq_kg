@@ -30,5 +30,6 @@ CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --permute 0.0 --rotate 0.0 --poisson-lambda 3.0  \
     --permute-sentences 0.0 --mask-length word --replace-length "-1"  \
     --shorten-method none --bpe sentencepiece --sentencepiece-model /home/ubuntu/efs-storage/tokenizer/mbart50/bpe/sentence.bpe.model  \
-    --train-subset train --valid-subset valid
+    --train-subset train --valid-subset valid \
+    --num-workers 60
 # --reset-optimizer --reset-meters --reset-dataloader --reset-lr-scheduler
