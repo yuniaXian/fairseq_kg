@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../fairseq"
+		},
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../Data-to-text-Evaluation-Metric"
+		}
+	],
+	"settings": {}
+}
