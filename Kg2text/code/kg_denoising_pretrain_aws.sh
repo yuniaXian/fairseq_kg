@@ -11,7 +11,10 @@ TOKENIZER=${EFS}/tokenizer
 # NAME=webnlg/data_mbart50_wtags
 DATADIR=${BASE}/dataset_denoising/kgtext_wikidata
 PRETRAIN=${EFS}/models/mbart50.ft.nn/model_wtags0/model.pt
-tensorboard_dir=${EFS}/logs/tensorboard/denoising_kgtext_wikidata
+tensorboard_dir=${BASE}/logs/tensorboard/denoising_kgtext_wikidata
+checkpoint_dir=${BASE}/checkpoints/denoising_kgtext_wikidata
+
+#source $BASE/anaconda3/bin/activate pytorch_latest_p37
 
 #python ${FAIRSEQ}/train.py ${DATADIR} \
 CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
@@ -19,12 +22,13 @@ CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --criterion label_smoothed_cross_entropy --label-smoothing 0.2 --dataset-impl mmap  \
     --finetune-from-model ${PRETRAIN} \
     --optimizer adam --adam-eps 1e-06 --adam-betas "(0.9, 0.98)"  \
-    --lr-scheduler polynomial_decay --lr "3e-05" --stop-min-lr "-1"  \
-    --warmup-updates 2500 --max-update 40000 --total-num-update 40000  \
-    --dropout 0.3 --attention-dropout 0.1 --weight-decay 0.0  \
-    --max-tokens 1024 --update-freq 1 --save-interval 1  \
-    --save-interval-updates 8000 --keep-interval-updates 10 --no-epoch-checkpoints --seed 222  \
-    --log-format simple --log-interval 2 --save-dir checkpoint/denoising_kgtext_wikidata  \
+    --lr-scheduler inverse_sqrt --lr "3e-05" --stop-min-lr "-1"  \
+    --warmup-updates 2500 --max-update 8000000 \
+    --dropout 0.3 --attention-dropout 0.1 --weight-decay 0.0 \
+    --max-tokens 2048 --update-freq 2 --save-interval 1  --fp16 \
+    --save-interval-updates 80000 --keep-interval-updates 10 --no-epoch-checkpoints --seed 222  \
+    --validate-interval-updates 500 \
+    --log-format simple --log-interval 10 --save-dir $checkpoint_dir  \
     --layernorm-embedding --ddp-backend no_c10d --langs en_XX --no-whole-word-mask-langs False  \
     --sample-break-mode eos --whole_word_mask_mode word  \
     --mask 0.5 --mask-random 0.0 --insert 0.0  \
@@ -34,5 +38,6 @@ CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --train-subset train --valid-subset valid \
     --num-workers 8 --required-batch-size-multiple 8 \
     --tensorboard-logdir $tensorboard_dir
+#  --memory-efficient-fp16 \
 #----restore-file $PRETRAIN \
 # --reset-optimizer --reset-meters --reset-dataloader --reset-lr-scheduler
