@@ -1,0 +1,157 @@
+
+common:
+  # common
+  logging_steps: 20
+  printing_steps: 200
+  save_every_n_epochs: 10
+  # output
+  output_dir: checkpoint # check!
+  loss_log_file: ""
+  res_file: ""
+  # training
+  epochs: 100  # task.data
+  starting_epoch: 0
+  learning_rate: e-5 # task.data.task.learning_rate
+  finetune: False
+  beam_size: 2
+  bleu: 4
+  copy_loss: False
+  device: gpu
+  seed: 0
+  tensorboard_logdir: ""
+  
+  # task
+  # need to implement: 'train', 'test', 'challenge', 'visualize', 'LM', 'compute_bleu', 'few_shot'
+  percent: 1.0
+  # data
+  # additional: "" for few shot log name
+task:
+  _name: kg2text
+  option: train # 可以不要
+  split: eval
+  dataset: test # 可以不要
+  encoder_type: kgpt
+  decoder_type: kgpt
+
+
+
+tokenizer:
+  fairseq_gpt2:
+    gpt2_encoder_json: encoder.json
+    gpt2_vocab_bpe: vocab.bpe
+  sentenpiece:
+    sentencepiece_model: sentence.bpe.model
+  kgpt_gpt2:
+    tokenizer_dir: GPT2_tokenizer
+  tokenizer_src: kgpt_gpt2
+  tokenizer_tgt: mbart50
+  vocab_file_src: "dict.gpt2.txt"
+  vocab_file_tgt: "dict.gpt2.txt"
+
+model:
+  share_all_embeddings: True # change
+  use_copy_gate: True
+  encoder_embed_dim: 768
+  decoder_embed_dim: 768
+  decoder_embed_path:
+  encoder_embed_path:
+  encoder_type: kgpt
+  decoder_type: mbart50
+  checkpoint_file: model.pt
+  pretrained_encoder_file: kgpt_kgpt_encoder.pt # True
+  pretrained_decoder_file: kgpt_kgpt_decoder.pt
+
+  load_pretrained_encoder: True
+  load_pretrained_decoder: True
+
+  save_encoder_file: kgpt_kgpt_encoder_sanity_ck.pt
+  save_decoder_file: kgpt_kgpt_decoder_sanity_ck.pt
+  # encoder initialization
+
+  encoder_ffn_embed_dim: 3072
+  encoder_layers: 6
+  encoder_attention_heads: 8
+
+  # forward:
+  src_length: 256
+  tgt_length: 72
+
+  kgpt:
+    pad_token_id: 50263
+    sos_token_id: 50262
+    eos_token_id: 50261
+    vocab_size: 50264
+
+    max_entity_embeddings: 30
+    max_triple_embeddings: 20
+    max_position_embeddings: 1024
+    #hidden_dropout_prob: 0.1
+    layer_norm_eps: 1e-12
+    max_enc_len: 256 #(==src_lengths)
+    positionwise_copy_prob: False # what?
+
+    encoder_layerdrop: 0.1
+    decoder_layerdrop: 0.1
+
+    encoder_embed_dim: 768
+    decoder_embed_dim: 768
+
+    decoder_embed_path: ""
+    encoder_embed_path: ""
+
+    pretrained_encoder_file: kgpt_kgpt_encoder.pt # True
+    pretrained_decoder_file: kgpt_kgpt_decoder.pt # True
+
+    load_pretrained_encoder: False
+    load_pretrained_decoder: False
+
+    encoder_ffn_embed_dim: 3072
+    decoder_ffn_embed_dim: 3072
+
+    encoder_layers: 6
+    encoder_attention_heads: 8
+    decoder_layers: 6
+    decoder_attention_heads: 8
+
+  mbart50:
+    no_token_positional_embeddings: false
+    no_cross_attention: false
+    cross_self_attention: false
+    encoder_layerdrop: 0
+    decoder_layerdrop: 0
+    encoder_layers_to_keep: null
+    decoder_layers_to_keep: null
+
+    encoder_learned_pos: true
+    decoder_learned_pos: true
+    encoder_normalize_before: true
+    decoder_normalize_before: true
+    share_all_embeddings: true
+    share_decoder_input_output_embed: true
+    dropout: 0.3
+    attention_dropout: 0.1
+    activation_dropout: 0.0
+    layernorm_embedding: true
+    encoder_embed_path: null
+    encoder_embed_dim: 1024
+    encoder_ffn_embed_dim: 4096
+    encoder_layers: 12
+    encoder_attention_heads: 16
+    decoder_embed_path: null
+    decoder_embed_dim: 1024
+    decoder_ffn_embed_dim: 4096
+    decoder_layers: 12
+    decoder_attention_heads: 16
+    adaptive_softmax_dropout: 0
+
+    decoder_output_dim: 1024
+    decoder_input_dim: 1024
+    activation_fn: relu
+    adaptive_input: false
+    no_scale_embedding: false
+
+    quant_noise_pq: 0
+    quant_noise_pq_block_size: 8
+    quant_noise_scalar: 0
+    checkpoint_activations: false
+    offload_activations: false

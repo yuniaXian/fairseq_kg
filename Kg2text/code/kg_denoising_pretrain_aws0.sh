@@ -1,1 +1,0 @@
-/local/home/ubuntu/efs-storage/data-bin/dataset_denoising/webnlg 
