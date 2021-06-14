@@ -11,32 +11,33 @@ TOKENIZER=${EFS}/tokenizer
 # NAME=webnlg/data_mbart50_wtags
 DATADIR=${BASE}/dataset_denoising/kgtext_wikidata
 PRETRAIN=${EFS}/models/mbart50.ft.nn/model_wtags0/model.pt
-tensorboard_dir=$BASE/logs/tensorboard/denoising_kgtext_wikidata
-checkpoint_dir=$BASE/checkpoints/denoising_kgtext_wikidata
+tensorboard_dir=${BASE}/logs/tensorboard/denoising_kgtext_wikidata
+checkpoint_dir=${BASE}/checkpoints/denoising_kgtext_wikidata
+
+#source $BASE/anaconda3/bin/activate pytorch_latest_p37
 
 #python ${FAIRSEQ}/train.py ${DATADIR} \
 CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --encoder-normalize-before --decoder-normalize-before --arch mbart_large --task kg_multilingual_denoising  \
     --criterion label_smoothed_cross_entropy --label-smoothing 0.2 --dataset-impl mmap  \
-    --reset-optimizer \
+    --finetune-from-model ${PRETRAIN} \
     --optimizer adam --adam-eps 1e-06 --adam-betas "(0.9, 0.98)"  \
     --lr-scheduler polynomial_decay --lr "3e-05" --stop-min-lr "-1"  \
-    --warmup-updates 2500 --total-num-update 300000 \
+    --warmup-updates 2500 --max-update 8000000 \
     --dropout 0.3 --attention-dropout 0.1 --weight-decay 0.0 \
     --max-tokens 2048 --update-freq 2 --save-interval 1  --fp16 \
-    --save-interval-updates 50000 --keep-interval-updates 10 --no-epoch-checkpoints --seed 222  \
+    --save-interval-updates 80000 --keep-interval-updates 10 --no-epoch-checkpoints --seed 222  \
     --validate-interval-updates 500 \
     --log-format simple --log-interval 10 --save-dir $checkpoint_dir  \
     --layernorm-embedding --ddp-backend no_c10d --langs en_XX --no-whole-word-mask-langs False  \
     --sample-break-mode eos --whole_word_mask_mode word  \
-    --mask 0.15 --mask-random 0.0 --insert 0.0  \
+    --mask 0.5 --mask-random 0.0 --insert 0.0  \
     --permute 0.0 --rotate 0.0 --poisson-lambda 3.0  \
     --permute-sentences 0.0 --mask-length word --replace-length "-1"  \
     --shorten-method none --bpe sentencepiece --sentencepiece-model /home/ubuntu/efs-storage/tokenizer/mbart50/bpe/sentence.bpe.model  \
     --train-subset train --valid-subset valid \
     --num-workers 8 --required-batch-size-multiple 8 \
     --tensorboard-logdir $tensorboard_dir
-#  --finetune-from-model ${PRETRAIN} \
 #  --memory-efficient-fp16 \
 #----restore-file $PRETRAIN \
 # --reset-optimizer --reset-meters --reset-dataloader --reset-lr-scheduler

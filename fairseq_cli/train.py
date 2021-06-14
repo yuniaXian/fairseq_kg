@@ -117,7 +117,6 @@ def main(cfg: FairseqConfig) -> None:
     for valid_sub_split in cfg.dataset.valid_subset.split(","):
         task.load_dataset(valid_sub_split, combine=False, epoch=1)
 
-    a = task.datasets["train"][0]
 
     if cfg.common.quantization_config_path is not None:
         quantizer = quantization_utils.Quantizer(
