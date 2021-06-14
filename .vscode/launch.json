@@ -550,7 +550,7 @@
         "--whole_word_mask_mode",
         "word",
         "--mask",
-        "0.2",
+        "0.5",
         "--mask-random",
         "0.0",
         "--insert",
