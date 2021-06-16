@@ -22,18 +22,18 @@ CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --criterion label_smoothed_cross_entropy --label-smoothing 0.2 --dataset-impl mmap  \
     --finetune-from-model ${PRETRAIN} \
     --optimizer adam --adam-eps 1e-06 --adam-betas "(0.9, 0.98)"  \
-    --lr-scheduler polynomial_decay --lr "3e-05" --stop-min-lr "-1"  \
-    --warmup-updates 2500 --max-update 8000000 \
+    --lr-scheduler polynomial_decay --lr "1e-04" --stop-min-lr "-1"  \
+    --warmup-updates 2500 --max-update 500000 \
     --dropout 0.3 --attention-dropout 0.1 --weight-decay 0.0 \
     --max-tokens 2048 --update-freq 2 --save-interval 1  --fp16 \
-    --save-interval-updates 80000 --keep-interval-updates 10 --no-epoch-checkpoints --seed 222  \
-    --validate-interval-updates 500 \
+    --save-interval-updates 5000 --keep-interval-updates 10 --no-epoch-checkpoints --seed 222  \
+    --validate-interval-updates 50000 \
     --log-format simple --log-interval 10 --save-dir $checkpoint_dir  \
     --layernorm-embedding --ddp-backend no_c10d --langs en_XX --no-whole-word-mask-langs False  \
     --sample-break-mode eos --whole_word_mask_mode word  \
-    --mask 0.5 --mask-random 0.0 --insert 0.0  \
-    --permute 0.0 --rotate 0.0 --poisson-lambda 3.0  \
-    --permute-sentences 0.0 --mask-length word --replace-length "-1"  \
+    --mask 0.15 --mask-random 0.0 --insert 0.0  \
+    --permute 0.0 --rotate 0.0 --poisson-lambda 3.5  \
+    --permute-sentences 0.0 --mask-length span-poisson --replace-length "1"  \
     --shorten-method none --bpe sentencepiece --sentencepiece-model /home/ubuntu/efs-storage/tokenizer/mbart50/bpe/sentence.bpe.model  \
     --train-subset train --valid-subset valid \
     --num-workers 8 --required-batch-size-multiple 8 \
