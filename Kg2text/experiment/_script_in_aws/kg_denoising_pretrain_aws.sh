@@ -18,7 +18,6 @@ checkpoint_dir=$BASE/checkpoints/denoising_kgtext_wikidata
 CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --encoder-normalize-before --decoder-normalize-before --arch mbart_large --task kg_multilingual_denoising  \
     --criterion label_smoothed_cross_entropy --label-smoothing 0.2 --dataset-impl mmap  \
-    --reset-optimizer \
     --optimizer adam --adam-eps 1e-06 --adam-betas "(0.9, 0.98)"  \
     --lr-scheduler polynomial_decay --lr "1e-04" --stop-min-lr "-1"  \
     --warmup-updates 2500 --total-num-update 500000 \
@@ -36,6 +35,8 @@ CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --train-subset train --valid-subset valid \
     --num-workers 8 --required-batch-size-multiple 8 \
     --tensorboard-logdir $tensorboard_dir
+# --no-epoch-checkpoints
+#     --reset-optimizer \
 #  --finetune-from-model ${PRETRAIN} \
 #  --memory-efficient-fp16 \
 #----restore-file $PRETRAIN \
