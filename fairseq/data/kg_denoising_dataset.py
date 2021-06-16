@@ -287,6 +287,8 @@ class KgDenoisingDataset(FairseqDataset):
         elif self.whole_word_mask_mode == "tag":
             is_word_start = is_special_token
         elif self.whole_word_mask_mode == "mixed":
+            # if mask-length is subword or span, then all subword-starts and tags are word starts. 
+            # if mask-length is word, then all the word-starts and tags are word starts
             pass
         
         num_to_mask = int(math.ceil((is_word_start==1).sum()*p))

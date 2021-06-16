@@ -19,16 +19,6 @@ load_data_dir=${DATADIR}/dataset_denoising/kgtext_wikidata/en_XX/kg2kg
 save_data_dir=${DATADIR}/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/trial
 
 
-
-
-fairseq-preprocess \
-    --only-source \
-    --srcdict ${TOKENIZER}/mbart50/dict/dict.mbart50_wtags.txt \
-    --trainpref $load_data_dir/train01 \
-    --destdir $save_data_dir \
-    --all-gather-list-size 1310720 \
-    --workers 100
-
 mv ${DATADIR}/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/trial/train.idx ${DATADIR}/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/trial/train01.idx
 mv ${DATADIR}/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/trial/train.bin ${DATADIR}/dataset_denoising/kgtext_wikidata/en_XX/kg2kg/trial/train01.bin
 #    --validpref $load_data_dir/valid \

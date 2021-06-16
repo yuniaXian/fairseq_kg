@@ -146,7 +146,12 @@ class KgMultilingualDenoisingTask(DenoisingTask):
             "Language to id mapping: ", {lang: id for id, lang in enumerate(languages)}
         )
 
-        mask_whole_words = get_whole_word_mask1(self.args, self.dictionary)
+        mask_whole_words = (
+            get_whole_word_mask1(self.args, self.source_dictionary)
+            if self.args.mask_length != "subword"
+            else None
+        )
+        # mask_whole_words = get_whole_word_mask1(self.args, self.dictionary)
         # mask_whole_words: tensor([1,1,1,1,0,0,0,....,1,1]) start of word: 1 else: 0
         mask_speical_tokens = get_special_token_mask(self.args, self.dictionary) # TODO GPU dtype?
 
@@ -220,8 +225,8 @@ class KgMultilingualDenoisingTask(DenoisingTask):
             )
             lang_datasets.append(lang_dataset)
 
-        a = lang_dataset[0]
-        b = lang_dataset[200]
+        #a = lang_dataset[0]
+        #b = lang_dataset[200]
 
         dataset_lengths = np.array(
             [len(d) for d in lang_datasets],
