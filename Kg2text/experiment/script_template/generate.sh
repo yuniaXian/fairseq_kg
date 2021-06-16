@@ -12,11 +12,12 @@ pretrain_setting=ft_mbart50/mask_15_mixed_span_35
 checkpoint_file=checkpoint_best.pt
 dataset=webnlg
 
-PRETRAIN=${EFS}/checkpoints/denoising_kgtext_wikidata/$pretrain_setting/ft_$dataset/$checkpoint_file
+PRETRAIN=${BASE}/checkpoints/denoising_kgtext_wikidata/$pretrain_setting/ft_$dataset/$checkpoint_file
 DATADIR=${EFS}/data-bin/dataset_kg2text/$dataset/en_XX
 sentencepiece_model=${BASE}/efs-storage/tokenizer/mbart50/bpe/sentence.bpe.model
 
 fairseq-generate $DATADIR \
   --path $PRETRAIN \
   --bpe 'sentencepiece' --sentencepiece-model ${sentencepiece_model} \
+  --num-workers 64 \
   --beam 5
