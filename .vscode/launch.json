@@ -564,7 +564,7 @@
         "--permute-sentences",
         "0.0",
         "--mask-length",
-        "word",
+        "span",
         "--replace-length",
         "-1",
         "--shorten-method",

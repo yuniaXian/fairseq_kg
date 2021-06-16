@@ -23,7 +23,7 @@ CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --warmup-updates 2500 --total-num-update 300000 \
     --dropout 0.3 --attention-dropout 0.1 --weight-decay 0.0 \
     --max-tokens 2560 --update-freq 2 --save-interval 1  --fp16 \
-    --save-interval-updates 50000 --keep-interval-updates 10 --seed 222  \
+    --save-interval-updates 5000 --keep-interval-updates 10 --seed 222  \
     --validate-interval-updates 5000 \
     --log-format simple --log-interval 10 --save-dir $checkpoint_dir  \
     --layernorm-embedding --ddp-backend no_c10d --langs en_XX --no-whole-word-mask-langs False  \
