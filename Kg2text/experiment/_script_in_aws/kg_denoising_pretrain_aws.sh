@@ -17,6 +17,7 @@ checkpoint_dir=$BASE/checkpoints/denoising_kgtext_wikidata
 #python ${FAIRSEQ}/train.py ${DATADIR} \
 CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --encoder-normalize-before --decoder-normalize-before --arch mbart_large --task kg_multilingual_denoising  \
+    --finetune-from-model ${PRETRAIN} \
     --criterion label_smoothed_cross_entropy --label-smoothing 0.2 --dataset-impl mmap  \
     --optimizer adam --adam-eps 1e-06 --adam-betas "(0.9, 0.98)"  \
     --lr-scheduler polynomial_decay --lr "1e-04" --stop-min-lr "-1"  \
