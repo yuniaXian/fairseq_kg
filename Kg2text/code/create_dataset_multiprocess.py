@@ -385,37 +385,17 @@ class Kg2KgDataset(Dataset):
 
     def write2file_non_wikidata(self, setting, file_name):
         L = len(self.data)
-        
+        start_time = time.time()
         if setting.option == "kg2kg":
             with open(file_name, "w") as f1:
                 #f1.write(x["text_bped"]+"\n"
-                isjson = True
-                if isinstance(self.data[0], str):
-                    isjson = False
-                for idx in range(L):
-                    if isjson == False:
-                        entry = json.loads(self.data[idx])
-                    else:
-                        entry = self.data[idx]
-                    
-                    #sentence = random.choice(entry['text']) # TODO
-                    KBs = entry['kbs'] # set of triples
-
-                    # for src_text
-                    if self.seperate == True:
-                        triples = []
-
-                        for i, entity_label in enumerate(KBs): # entity_label: "W1215"
-                            if i + 1 >= self.max_entity:
-                                break
-
-                            entity = KBs[entity_label] # ['Sweet potato', 'Sweet potato', [['main ingredients', 'Binignit']]]
-                            triple = self.format_triples(entity, setting)
-                            triples += triple # triple: list of triples, list of str
-                            triple = self.tag_post_process(triple, setting, "kg")
-                            f1.write(triple + "\n")
-                    else:
+                line_count = 0
+                
+                if self.seperate == False:
+                    for idx in range(L):
                         triples = ""
+                        entry = self.data[idx]
+                        KBs = entry['kbs']
 
                         for i, entity_label in enumerate(KBs): # entity_label: "W1215"
                             if i + 1 >= self.max_entity:
@@ -424,13 +404,37 @@ class Kg2KgDataset(Dataset):
                             entity = KBs[entity_label] # ['Sweet potato', 'Sweet potato', [['main ingredients', 'Binignit']]]
                             triple = self.format_triples(entity, setting)
                             triples += triple # triple: list of triples, list of str
-                        triples.strip()
+                        triples = triples.strip()
                         triples = self.tag_post_process(triples, setting, "kg")
                         f1.write(triples + "\n") # TODO comment
+                    
+
+
+                
+
+                    # for src_text
+                elif self.seperate == True:
+                    
+                    for idx in range(L):
+                        triples = []
+                        entry = self.data[idx]
+                        KBs = entry['kbs']
+
+                        for i, entity_label in enumerate(KBs): # entity_label: "W1215"
+                            if i + 1 >= self.max_entity:
+                                break
+
+                            entity = KBs[entity_label] # ['Sweet potato', 'Sweet potato', [['main ingredients', 'Binignit']]]
+                            triple = self.format_triples(entity, setting)
+                            #triples += triple # triple: list of triples, list of str
+                            triple = triple.strip()
+                            triple = self.tag_post_process(triple, setting, "kg")
+                            f1.write(triple + "\n")
+                    
 
             print("finished writing to file: %s", file_name)
             f1.close()
-        
+    
         elif setting.option == "text2text":
             with open(file_name, "w") as f1:
                 isjson = True
@@ -700,7 +704,7 @@ if __name__ == "__main__":
     
     if setting.option != "kg2text":
         for split in ["valid", "test", "train"]:
-            files_list = sorted(glob.glob(os.path.join(load_data_subdir, split)+"??"))
+            files_list = sorted(glob.glob(os.path.join(load_data_subdir, split)+".json"))
             if files_list:             
                 def func(path_k):
                     round_start_time = time.time()
@@ -717,8 +721,9 @@ if __name__ == "__main__":
                     round_end_time = time.time()
                     print("finished the %s-th round, taking %d seconds" % (k, round_end_time-round_start_time))
 
-                with concurrent.futures.ProcessPoolExecutor() as executor:
-                    executor.map(func, files_list)
+                #with concurrent.futures.ProcessPoolExecutor() as executor:
+                    #executor.map(func, files_list)
+                func(files_list[0])
 
 
             elif os.path.exists(os.path.join(load_data_subdir, split)):
