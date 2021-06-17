@@ -1,11 +1,14 @@
 log_base=/home/ubuntu/efs-storage/decoded_results
-pretrain_setting=ft_mbart50/mask_15_mixed_span_35
+#pretrain_setting=ft_mbart50/mask_15_mixed_span_35
+#pretrain_setting=fs_mbart50/mask_15_word_word
+pretrain_setting=fs_mbart50/mask_15_mixed_span_35
+
 dataset=webnlg
 file_name=chp_best.log
 
 load_file_dir=$log_base/$pretrain_setting/ft_$dataset/
-nohup_output=$1
-decoded_output=$2
+nohup_output=chp_best.log
+decoded_output=chp_best
 tags=[en_XX][TEXT]
 
 
