@@ -32,11 +32,11 @@ CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --task translation --source-lang ${SRC} --target-lang ${TGT} \
     --criterion label_smoothed_cross_entropy --label-smoothing 0.2  \
     --optimizer adam --adam-eps 1e-06 --adam-betas '(0.9, 0.98)' --weight-decay 0.0 \
-    --lr-scheduler inverse_sqrt --lr "3e-05" --stop-min-lr '-1' \
-    --warmup-updates 2500 --max-update 40000 \
-    --max-tokens 2560 --update-freq 1 \
+    --lr-scheduler inverse_sqrt --lr "1e-05" --stop-min-lr '-1' \
+    --warmup-updates 200 --max-update 20000 \
+    --max-tokens 3720 --update-freq 1 \
 	--fp16 --seed 222 \
-    --validate-interval 10 \
+    --validate-interval 5 \
     --save-interval 10 --save-dir ${checkpoint_dir} \
     --log-format simple --log-interval 10 --tensorboard-logdir $tensorboard_dir \
     --scoring bleu \

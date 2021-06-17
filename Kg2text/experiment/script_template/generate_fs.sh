@@ -19,5 +19,5 @@ sentencepiece_model=${BASE}/efs-storage/tokenizer/mbart50/bpe/sentence.bpe.model
 fairseq-generate $DATADIR \
   --path $PRETRAIN \
   --bpe 'sentencepiece' --sentencepiece-model ${sentencepiece_model} \
-  --beam 5 \
-  --num-workers 64
+  --num-workers 64 \
+  --beam 5

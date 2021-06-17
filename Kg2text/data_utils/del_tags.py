@@ -31,6 +31,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     tags_to_del = args.tags_to_del.split()
-    with open("/home/ubuntu/efs-storage/dataset/webnlg/test.txt", "r") as f:
-        L = f.readlines()
+    #", "r") as f:
+        #L = f.readlines()
     del_tags(tags_to_del, args.load_file, args.save_file, right_pad_space=True)
