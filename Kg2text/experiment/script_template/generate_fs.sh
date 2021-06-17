@@ -6,9 +6,9 @@ FAIRSEQ=${WORKSPACE}/fairseq/fairseq_cli
 KG2TEXT=${WORKSPACE}/fairseq/Kg2text
 TOKENIZER=${EFS}/tokenizer
 
-pretrain_setting=ft_mbart50/mask_15_mixed_span_35
+#pretrain_setting=ft_mbart50/mask_15_mixed_span_35
 #pretrain_setting=fs_mbart50/mask_15_mixed_span_35
-#pretrain_setting=fs_mbart50/mask_15_word_word
+pretrain_setting=fs_mbart50/mask_15_word_word
 checkpoint_file=checkpoint_best.pt
 dataset=webnlg
 
