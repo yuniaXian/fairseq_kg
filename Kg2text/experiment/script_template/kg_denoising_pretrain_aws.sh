@@ -1,3 +1,4 @@
+#!/bin/bash
 CUDA=$1
 EFS=/home/ubuntu/efs-storage
 BASE=/home/ubuntu
@@ -11,13 +12,14 @@ TOKENIZER=${EFS}/tokenizer
 # NAME=webnlg/data_mbart50_wtags
 DATADIR=${BASE}/dataset_denoising/kgtext_wikidata
 PRETRAIN=${EFS}/models/mbart50.ft.nn/model_wtags0/model.pt
-tensorboard_dir=$BASE/logs/tensorboard/denoising_kgtext_wikidata
+tensorboard_dir=$BASE/logs/tensorboard/denoising_kgtext_wikidata/fs_mbart50_mask_15_word_word
 checkpoint_dir=$BASE/checkpoints/denoising_kgtext_wikidata
+restore_file=$checkpoint_dir/fs_mbart50/mask_15_word_word/checkpoint2.pt
 
+source /home/ubuntu/anaconda3/bin/activate pytorch_latest_p37
 #python ${FAIRSEQ}/train.py ${DATADIR} \
 CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --encoder-normalize-before --decoder-normalize-before --arch mbart_large --task kg_multilingual_denoising  \
-    --finetune-from-model ${PRETRAIN} \
     --criterion label_smoothed_cross_entropy --label-smoothing 0.2 --dataset-impl mmap  \
     --optimizer adam --adam-eps 1e-06 --adam-betas "(0.9, 0.98)"  \
     --lr-scheduler polynomial_decay --lr "1e-04" --stop-min-lr "-1"  \
@@ -35,7 +37,8 @@ CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --shorten-method none --bpe sentencepiece --sentencepiece-model /home/ubuntu/efs-storage/tokenizer/mbart50/bpe/sentence.bpe.model  \
     --train-subset train --valid-subset valid \
     --num-workers 8 --required-batch-size-multiple 8 \
-    --tensorboard-logdir $tensorboard_dir
+    --tensorboard-logdir $tensorboard_dir \
+    --restore-file $restore_file \
 # --no-epoch-checkpoints
 #     --reset-optimizer \
 #  --finetune-from-model ${PRETRAIN} \
