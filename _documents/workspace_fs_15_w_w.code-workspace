@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../efs-storage/logs"
+		},
+		{
+			"path": "../../efs-storage/decoded_results"
+		}
+	],
+	"settings": {}
+}
