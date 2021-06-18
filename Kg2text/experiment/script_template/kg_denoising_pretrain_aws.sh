@@ -12,14 +12,14 @@ TOKENIZER=${EFS}/tokenizer
 # NAME=webnlg/data_mbart50_wtags
 
 
-#pretrain_setting=ft_mbart50/mask_15_mixed_span_35
-pretrain_setting=fs_mbart50/mask_15_mixed_span_35
+pretrain_setting=ft_mbart50/mask_15_mixed_span_35
+#pretrain_setting=fs_mbart50/mask_15_mixed_span_35
 #pretrain_setting=fs_mbart50/mask_15_word_word
 DATADIR=${BASE}/dataset_denoising/kgtext_wikidata
 PRETRAIN=${EFS}/models/mbart50.ft.nn/model_wtags0/model.pt
 tensorboard_dir=$BASE/logs/tensorboard/denoising_kgtext_wikidata/$pretrain_setting
 checkpoint_dir=$BASE/checkpoints/denoising_kgtext_wikidata/$pretrain_setting
-restore_file=$checkpoint_dir/checkpoint_1_65000.pt
+restore_file=$checkpoint_dir/checkpoint2.pt
 
 source /home/ubuntu/anaconda3/bin/activate pytorch_latest_p37
 #python ${FAIRSEQ}/train.py ${DATADIR} \
@@ -31,8 +31,8 @@ CUDA_VISIBLE_DEVICES=${CUDA} python ${FAIRSEQ}/train.py ${DATADIR} \
     --warmup-updates 2500 --total-num-update 500000 \
     --dropout 0.3 --attention-dropout 0.1 --weight-decay 0.0 \
     --max-tokens 2560 --update-freq 2 --save-interval 1  --fp16 \
-    --save-interval-updates 5000 --keep-interval-updates 10 --seed 222  \
-    --validate-interval-updates 5000 \
+    --save-interval-updates 10000 --keep-interval-updates 20 --seed 222  \
+    --validate-interval-updates 10000 \
     --log-format simple --log-interval 10 --save-dir $checkpoint_dir  \
     --layernorm-embedding --ddp-backend no_c10d --langs en_XX --no-whole-word-mask-langs False  \
     --sample-break-mode eos --whole_word_mask_mode word  \
