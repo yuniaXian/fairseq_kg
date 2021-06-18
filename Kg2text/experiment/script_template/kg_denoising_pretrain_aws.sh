@@ -14,7 +14,7 @@ DATADIR=${BASE}/dataset_denoising/kgtext_wikidata
 PRETRAIN=${EFS}/models/mbart50.ft.nn/model_wtags0/model.pt
 tensorboard_dir=$BASE/logs/tensorboard/denoising_kgtext_wikidata/fs_mbart50_mask_15_word_word
 checkpoint_dir=$BASE/checkpoints/denoising_kgtext_wikidata
-restore_file=$checkpoint_dir/fs_mbart50/mask_15_word_word/checkpoint2.pt
+restore_file=$checkpoint_dir/fs_mbart50/mask_15_word_word/checkpoint3.pt
 
 source /home/ubuntu/anaconda3/bin/activate pytorch_latest_p37
 #python ${FAIRSEQ}/train.py ${DATADIR} \
